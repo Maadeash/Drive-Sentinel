@@ -1,0 +1,383 @@
+{
+  "branch": "supply",
+  "dataset": "thomas_motor",
+  "stage": "S1",
+  "task": "normal / phase_loss_running / single_phasing_start",
+  "deliverable": "documented threshold rule (not a learned model)",
+  "rule": {
+    "lost_fraction": 0.05,
+    "off_amps": 0.05,
+    "rotating_vib": 0.005,
+    "window_s": 0.2,
+    "hop_s": 0.1
+  },
+  "rule_statement": "A phase is LOST in a window when its 0.2 s RMS falls below 5 % of the median of the other two. A window is OFF when every phase is below an absolute floor of 0.05 A, and OFF windows are excluded from scoring. phase_loss_running is separated from single_phasing_start by ROTATION (vib_x RMS above 0.005), not by current.",
+  "why_not_learned": "One recording per (motor x class) and two motors: under leave-one-motor-out a learned model sees one training example per class, so it separates two 20 s captures rather than learning phase loss. Liu et al. measure exactly this on this dataset: macro-F1 0.9682 random split, 0.5856 within-label block split.",
+  "label_source": "phase-current collapse rule",
+  "label_vector_used": false,
+  "label_reconstruction": {
+    "window_samples": 1000,
+    "step_samples": 500,
+    "windows_per_file": 1998,
+    "validated": false,
+    "file_boundary_hits": "6/14",
+    "event_boundary_hits": "0/4",
+    "note": "File structure reconstructs at 1998 windows/file; within-file event structure does not match the measured phase-current collapse. Labels are derived from the collapse rule instead."
+  },
+  "R1_rule_per_recording": {
+    "protocol": "threshold rule, every recording",
+    "scores": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class_f1": {
+        "normal": 1.0,
+        "phase_loss_running": 1.0,
+        "single_phasing_start": 1.0
+      },
+      "majority_baseline": 0.6,
+      "n": 10
+    },
+    "recordings": [
+      {
+        "file": "FILE 1.mat",
+        "motor": "healthy",
+        "scenario": "normal_no_load",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "off": 78,
+          "normal": 121
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 2.mat",
+        "motor": "healthy",
+        "scenario": "phase_removal_running",
+        "true_label": "phase_loss_running",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 97,
+          "phase_loss_running": 102
+        },
+        "events": [
+          {
+            "state": "phase_loss_running",
+            "t0": 7.3,
+            "t1": 17.4,
+            "phases": [
+              1
+            ],
+            "duration_s": 10.1
+          }
+        ],
+        "verdict": "phase_loss_running",
+        "latency_s": 0.1,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 3.mat",
+        "motor": "healthy",
+        "scenario": "load_0.4Nm",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 199
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 4.mat",
+        "motor": "healthy",
+        "scenario": "load_0.8Nm",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 199
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 5.mat",
+        "motor": "healthy",
+        "scenario": "single_phasing_start",
+        "true_label": "single_phasing_start",
+        "n_windows": 199,
+        "window_states": {
+          "off": 44,
+          "normal": 11,
+          "single_phasing_start": 144
+        },
+        "events": [
+          {
+            "state": "single_phasing_start",
+            "t0": 5.3,
+            "t1": 19.6,
+            "phases": [
+              1
+            ],
+            "duration_s": 14.3
+          }
+        ],
+        "verdict": "single_phasing_start",
+        "latency_s": 0.3,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 6.mat",
+        "motor": "faulty",
+        "scenario": "normal_no_load",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "off": 88,
+          "normal": 111
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 7.mat",
+        "motor": "faulty",
+        "scenario": "phase_removal_running",
+        "true_label": "phase_loss_running",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 131,
+          "phase_loss_running": 68
+        },
+        "events": [
+          {
+            "state": "phase_loss_running",
+            "t0": 9.4,
+            "t1": 16.1,
+            "phases": [
+              1
+            ],
+            "duration_s": 6.7
+          }
+        ],
+        "verdict": "phase_loss_running",
+        "latency_s": 0.0,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 8.mat",
+        "motor": "faulty",
+        "scenario": "load_0.4Nm",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 199
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 9.mat",
+        "motor": "faulty",
+        "scenario": "load_0.8Nm",
+        "true_label": "normal",
+        "n_windows": 199,
+        "window_states": {
+          "normal": 199
+        },
+        "events": [],
+        "verdict": "normal",
+        "latency_s": null,
+        "latency_note": null
+      },
+      {
+        "file": "FILE 10.mat",
+        "motor": "faulty",
+        "scenario": "single_phasing_start",
+        "true_label": "single_phasing_start",
+        "n_windows": 199,
+        "window_states": {
+          "off": 51,
+          "normal": 18,
+          "single_phasing_start": 130
+        },
+        "events": [
+          {
+            "state": "single_phasing_start",
+            "t0": 4.8,
+            "t1": 17.7,
+            "phases": [
+              1
+            ],
+            "duration_s": 12.9
+          }
+        ],
+        "verdict": "single_phasing_start",
+        "latency_s": 1.5,
+        "latency_note": null
+      }
+    ]
+  },
+  "R2_rule_leave_one_motor_out": {
+    "protocol": "threshold rule, scored on each motor in turn",
+    "note": "The rule has no parameters fitted to any recording, so holding a motor out changes nothing about the rule -- this measures whether it works on each motor, not whether it generalises from one to the other.",
+    "per_motor": {
+      "motor_A_healthy": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class_f1": {
+          "normal": 1.0,
+          "phase_loss_running": 1.0,
+          "single_phasing_start": 1.0
+        },
+        "majority_baseline": 0.6,
+        "n": 5
+      },
+      "motor_B_faulty": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class_f1": {
+          "normal": 1.0,
+          "phase_loss_running": 1.0,
+          "single_phasing_start": 1.0
+        },
+        "majority_baseline": 0.6,
+        "n": 5
+      }
+    },
+    "pooled": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class_f1": {
+        "normal": 1.0,
+        "phase_loss_running": 1.0,
+        "single_phasing_start": 1.0
+      },
+      "majority_baseline": 0.6,
+      "n": 10
+    }
+  },
+  "detection_latency": {
+    "per_event": [
+      {
+        "file": "FILE 2.mat",
+        "latency_s": 0.1
+      },
+      {
+        "file": "FILE 5.mat",
+        "latency_s": 0.3
+      },
+      {
+        "file": "FILE 7.mat",
+        "latency_s": 0.0
+      },
+      {
+        "file": "FILE 10.mat",
+        "latency_s": 1.5
+      }
+    ],
+    "window_s": 0.2,
+    "hop_s": 0.1,
+    "note": "Latency is measured against an amplitude crossing independent of the rule's own threshold. It cannot be better than the hop of 0.1 s."
+  },
+  "L1_learned_leave_one_motor_out": {
+    "protocol": "learned classifier, leave-one-motor-out",
+    "folds": [
+      {
+        "accuracy": 0.6437571592210768,
+        "macro_f1": 0.7111895334045989,
+        "per_class_f1": {
+          "normal": 0.5722145804676754,
+          "phase_loss_running": 0.5613540197461213,
+          "single_phasing_start": 1.0
+        },
+        "majority_baseline": 0.5945017182130584,
+        "n": 873,
+        "held_out": [
+          "motor_A_healthy"
+        ]
+      },
+      {
+        "accuracy": 0.6752336448598131,
+        "macro_f1": 0.4061634503707674,
+        "per_class_f1": {
+          "normal": 0.886759581881533,
+          "phase_loss_running": 0.3317307692307692,
+          "single_phasing_start": 0.0
+        },
+        "majority_baseline": 0.594626168224299,
+        "n": 856,
+        "held_out": [
+          "motor_B_faulty"
+        ]
+      }
+    ],
+    "pooled": {
+      "accuracy": 0.6593406593406593,
+      "macro_f1": 0.639366779880317,
+      "per_class_f1": {
+        "normal": 0.7648,
+        "phase_loss_running": 0.47644444444444445,
+        "single_phasing_start": 0.6768558951965066
+      },
+      "majority_baseline": 0.5945633314054367,
+      "n": 1729
+    }
+  },
+  "L3_learned_shuffled_LEAKY": {
+    "protocol": "learned classifier, shuffled windows",
+    "leaky": true,
+    "caveat": "(leaky reference) windows split at random, ignoring motor and recording",
+    "pooled": {
+      "accuracy": 0.9982648930017352,
+      "macro_f1": 0.9981250757469459,
+      "per_class_f1": {
+        "normal": 0.9985415653864853,
+        "phase_loss_running": 0.9974811083123425,
+        "single_phasing_start": 0.9983525535420099
+      },
+      "majority_baseline": 0.5945633314054367,
+      "n": 1729
+    }
+  },
+  "N1_bearing_confound": {
+    "protocol": "predict MOTOR IDENTITY from the same features, shuffled split",
+    "scores": {
+      "accuracy": 0.9982648930017352,
+      "macro_f1": 0.9982647444035749,
+      "per_class_f1": {
+        "healthy": 0.9982808022922637,
+        "faulty": 0.9982486865148862
+      },
+      "majority_baseline": 0.5049161364950838,
+      "n": 1729
+    },
+    "negative_result": true,
+    "statement": "D4 has ONE motor per bearing condition, so 'outer-race fault' and 'motor identity' are the same variable. Nothing distinguishes a bearing defect from any other difference between two physical machines -- winding tolerances, mounting, alignment, age. Vibration is measurably 1.6-2.3x higher on the faulty motor across every matched scenario pair, and that measurement cannot be attributed to the bearing. Reported as a documented negative result, never as a capability."
+  },
+  "fusion": {
+    "floor": {
+      "min_validation_groups": 3,
+      "min_macro_f1": 0.75,
+      "fixed_at": "2026-09-18T07:19:23Z",
+      "fixed_at_commit": "7344a436b724a08058ca6496d9d1d5936e17226b"
+    },
+    "protocol_used": "R2 (threshold rule, leave-one-motor-out)",
+    "n_validation_groups": 2,
+    "honest_macro_f1": 1.0,
+    "fault_authority": false,
+    "status": "INDICATIVE",
+    "reason": "2 validation groups against the pre-registered minimum of 3; macro-F1 1.0000 against the minimum of 0.75. Two motors is below the group floor whatever the rule scores, which docs/claims_audit.md \u00a71.1 anticipated before this branch existed."
+  },
+  "seconds": 9.0
+}

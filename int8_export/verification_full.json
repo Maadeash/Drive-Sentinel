@@ -1,0 +1,18 @@
+{
+  "n_windows": 16211,
+  "argmax_agreement": 0.9987662698167911,
+  "float_accuracy": 0.9922274998457837,
+  "int8_accuracy": 0.9914872617358583,
+  "disagreements": 20,
+  "meets_98pct_bar": true,
+  "disagreements_by_bearing": {
+    "KI05": 6,
+    "K002": 3,
+    "KA03": 3,
+    "KA04": 2,
+    "KA05": 2,
+    "KA30": 2,
+    "KA22": 1,
+    "KI14": 1
+  }
+}

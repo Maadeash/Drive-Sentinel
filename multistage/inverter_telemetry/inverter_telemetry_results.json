@@ -1,0 +1,450 @@
+{
+  "branch": "inverter_telemetry",
+  "dataset": "bacha_inverter",
+  "stage": "S2/S3",
+  "task": "normal / open_circuit / short_circuit / over_temp",
+  "n_windows": 1050,
+  "window_s": 5.0,
+  "hop_s": 1.0,
+  "purge_windows": 5,
+  "dropped_channels": [
+    "VDC",
+    "IDC",
+    "VD"
+  ],
+  "dropped_reason": "VDC/IDC/VD per-class means span 0.78/0.45/0.26 ADC counts against per-channel std 1.2-1.4 -- inside their own quantisation noise.",
+  "calibration_independence": "No feature inverts the NTC curve. Temperature enters only as raw ADC statistics and as ADC DIFFERENCES between channels, both monotone in temperature under any calibration. If the Steinhart-Hart refit in data_notes_d3.md is wrong, none of these numbers change.",
+  "confound": "Each condition is ONE contiguous run recorded at a distinct wall-clock time (13:24 to 14:31), and temperature drifts monotonically within a run. A contiguous block split therefore separates EARLY-IN-RUN from LATE-IN-RUN, not condition from condition. There is no group axis on this dataset -- one run per condition means nothing independent can be held out -- so every number here is a within-run estimate and the branch is INDICATIVE whatever it scores.",
+  "temperature_note": "The over_temp family is separable by a single NTC threshold: F6 heats HB1, F7 heats HB1 and HB2, F8 heats HB3, each matching its filename. A 4-class score that includes over_temp is therefore substantially a thermometer reading, which is why the electrical-only ablation leads the card.",
+  "feature_names": [
+    "Ia_mean",
+    "Ia_std",
+    "Ia_min",
+    "Ia_max",
+    "Ib_mean",
+    "Ib_std",
+    "Ib_min",
+    "Ib_max",
+    "Ia_Ib_imbalance",
+    "Ia_Ib_abs_diff",
+    "T1_adc_mean",
+    "T1_adc_std",
+    "T1_adc_min",
+    "T1_adc_max",
+    "T2_adc_mean",
+    "T2_adc_std",
+    "T2_adc_min",
+    "T2_adc_max",
+    "T3_adc_mean",
+    "T3_adc_std",
+    "T3_adc_min",
+    "T3_adc_max",
+    "dT12_adc",
+    "dT13_adc",
+    "dT23_adc",
+    "T_spread_adc",
+    "T_min_adc_rate",
+    "T_max_adc_rate"
+  ],
+  "feature_names_electrical_only": [
+    "Ia_mean",
+    "Ia_std",
+    "Ia_min",
+    "Ia_max",
+    "Ib_mean",
+    "Ib_std",
+    "Ib_min",
+    "Ib_max",
+    "Ia_Ib_imbalance",
+    "Ia_Ib_abs_diff"
+  ],
+  "V3_electrical_only": {
+    "protocol": "temperature channels REMOVED; Ia/Ib only",
+    "question": "Can open- and short-circuit faults be detected without a thermometer? This is the question that matters for a drive-health story.",
+    "block_split": {
+      "accuracy": 0.8503184713375797,
+      "macro_f1": 0.8228928220255654,
+      "per_class_f1": {
+        "normal": 0.9839999999999999,
+        "open_circuit": 0.5111111111111111,
+        "short_circuit": 1.0,
+        "over_temp": 0.7964601769911505
+      },
+      "support": {
+        "normal": 127,
+        "open_circuit": 51,
+        "short_circuit": 31,
+        "over_temp": 105
+      },
+      "majority_baseline": 0.40445859872611467,
+      "n": 314,
+      "caveat": "one run per condition: this is a within-run estimate",
+      "n_train": 691,
+      "n_test": 314,
+      "purge_windows": 5,
+      "confusion": [
+        [
+          123,
+          1,
+          0,
+          3
+        ],
+        [
+          0,
+          23,
+          0,
+          28
+        ],
+        [
+          0,
+          0,
+          31,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          90
+        ]
+      ],
+      "labels": [
+        "normal",
+        "open_circuit",
+        "short_circuit",
+        "over_temp"
+      ]
+    },
+    "shuffled_LEAKY": {
+      "accuracy": 0.9228571428571428,
+      "macro_f1": 0.9105695992268431,
+      "per_class_f1": {
+        "normal": 0.9964664310954063,
+        "open_circuit": 0.756923076923077,
+        "short_circuit": 1.0,
+        "over_temp": 0.8888888888888888
+      },
+      "support": {
+        "normal": 425,
+        "open_circuit": 173,
+        "short_circuit": 103,
+        "over_temp": 349
+      },
+      "majority_baseline": 0.40476190476190477,
+      "n": 1050,
+      "leaky": true,
+      "confusion": [
+        [
+          423,
+          1,
+          0,
+          1
+        ],
+        [
+          0,
+          123,
+          0,
+          50
+        ],
+        [
+          0,
+          0,
+          103,
+          0
+        ],
+        [
+          1,
+          28,
+          0,
+          320
+        ]
+      ],
+      "labels": [
+        "normal",
+        "open_circuit",
+        "short_circuit",
+        "over_temp"
+      ],
+      "caveat": "(leaky reference) windows split at random within each run"
+    },
+    "n_features": 10
+  },
+  "confound_evidence": {
+    "over_temp_f1_without_temperature_channels": 0.7964601769911505,
+    "statement": "The electrical-only ablation reaches macro-F1 0.8229 and scores over_temp at F1 0.796 -- WITH NO TEMPERATURE SENSOR IN THE FEATURE SET. A thermal fault is not physically detectable from two 10 Hz phase currents, so that number is the model identifying WHICH RUN a window came from, not what condition the inverter was in. Each condition is one contiguous file at a distinct wall-clock time, so anything that drifts with time carries run identity. Treat every 4-class number on this dataset as an upper bound contaminated by run identification.",
+    "open_circuit_f1_without_temperature_channels": 0.5111111111111111,
+    "open_circuit_note": "open_circuit is the one class the electrical channels should be able to see, and it is the WEAKEST at F1 0.511. F1 (HB2 high-side open) has almost the same Ia/Ib means as F0 -- measured 519/474 against 515/475."
+  },
+  "V1_block_split": {
+    "protocol": "contiguous 70/30 per condition run, purge >= 1 window",
+    "scores": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class_f1": {
+        "normal": 1.0,
+        "open_circuit": 1.0,
+        "short_circuit": 1.0,
+        "over_temp": 1.0
+      },
+      "support": {
+        "normal": 127,
+        "open_circuit": 51,
+        "short_circuit": 31,
+        "over_temp": 105
+      },
+      "majority_baseline": 0.40445859872611467,
+      "n": 314,
+      "caveat": "one run per condition: this is a within-run estimate",
+      "n_train": 691,
+      "n_test": 314,
+      "purge_windows": 5,
+      "confusion": [
+        [
+          127,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          51,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          31,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          105
+        ]
+      ],
+      "labels": [
+        "normal",
+        "open_circuit",
+        "short_circuit",
+        "over_temp"
+      ]
+    }
+  },
+  "V2_shuffled_LEAKY": {
+    "protocol": "random window split",
+    "scores": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class_f1": {
+        "normal": 1.0,
+        "open_circuit": 1.0,
+        "short_circuit": 1.0,
+        "over_temp": 1.0
+      },
+      "support": {
+        "normal": 425,
+        "open_circuit": 173,
+        "short_circuit": 103,
+        "over_temp": 349
+      },
+      "majority_baseline": 0.40476190476190477,
+      "n": 1050,
+      "leaky": true,
+      "confusion": [
+        [
+          425,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          173,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          103,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          349
+        ]
+      ],
+      "labels": [
+        "normal",
+        "open_circuit",
+        "short_circuit",
+        "over_temp"
+      ],
+      "caveat": "(leaky reference) windows split at random within each run"
+    }
+  },
+  "run_identification_control": {
+    "question": "Can the model tell WHICH RUN a window came from? One run per condition means run identity and condition label are the same variable, so whatever fraction of the 4-class score is run identification is not condition diagnosis.",
+    "with_temperature": {
+      "accuracy": 0.9713375796178344,
+      "macro_f1": 0.9111336594842976,
+      "majority_baseline": 0.40445859872611467,
+      "n": 314
+    },
+    "electrical_only": {
+      "accuracy": 0.7484076433121019,
+      "macro_f1": 0.7277469154284364,
+      "majority_baseline": 0.40445859872611467,
+      "n": 314
+    },
+    "n_runs": 9,
+    "interpretation": "Run identity is recoverable at 0.9713 with temperature and 0.7484 from the electrical channels alone, against a 0.4045 majority baseline over 9 runs. The 4-class family score is an upper bound on condition diagnosis by that margin: a model that can name the run can name the condition without diagnosing anything, because there is one run per condition."
+  },
+  "location_9class_QUALITATIVE_ONLY": {
+    "protocol": "contiguous block split, 9-class location view",
+    "reported_as": "confusion matrix only -- NOT a headline metric",
+    "reason": "Under the block split the smallest classes get ~8-10 test windows. A per-class number on eight samples has a 95 % CI of roughly +/-35 points.",
+    "labels": [
+      "F0",
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5",
+      "F6",
+      "F7",
+      "F8"
+    ],
+    "confusion": [
+      [
+        126,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        19,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        32,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        3,
+        7,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5,
+        4,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        11,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        51,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        30
+      ]
+    ],
+    "support": {
+      "F0": 127,
+      "F1": 19,
+      "F2": 32,
+      "F3": 11,
+      "F4": 9,
+      "F5": 11,
+      "F6": 24,
+      "F7": 51,
+      "F8": 30
+    }
+  },
+  "fusion": {
+    "floor": {
+      "min_validation_groups": 3,
+      "min_macro_f1": 0.75,
+      "fixed_at": "2026-09-18T07:19:23Z",
+      "fixed_at_commit": "7344a436b724a08058ca6496d9d1d5936e17226b"
+    },
+    "protocol_used": "V1 (contiguous block split, within-run)",
+    "n_validation_groups": 0,
+    "honest_macro_f1": 1.0,
+    "fault_authority": false,
+    "status": "INDICATIVE",
+    "reason": "0 independent validation groups against the pre-registered minimum of 3: one run per condition means there is nothing to hold out. The branch is INDICATIVE whatever it scores, which docs/claims_audit.md \u00a71.1 anticipated before it existed."
+  },
+  "seconds": 10.4
+}

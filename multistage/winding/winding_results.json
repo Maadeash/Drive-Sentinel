@@ -1,0 +1,386 @@
+{
+  "branch": "winding",
+  "dataset": "kaist_pmsm",
+  "stage": "S4",
+  "task": "inter_coil vs inter_turn",
+  "healthy_status": "NOT MEASURABLE",
+  "healthy_reason": "All three healthy recordings are from 2022-01-25 (3/0/0 across the three acquisition days), so healthy-vs-faulty is perfectly confounded with acquisition session. Under leave-one-session-out, holding out 2022-01-25 leaves training with no healthy recordings, and holding out either other day leaves the test set with none. No session-aware protocol on this dataset can evaluate it. See docs/data_notes_d2.md 7D.",
+  "n_windows": 10463,
+  "feature_names": [
+    "neg_seq_ratio",
+    "park_eccentricity",
+    "third_harmonic_ratio",
+    "order_01",
+    "order_02",
+    "order_03",
+    "order_04",
+    "order_05",
+    "order_06",
+    "order_07",
+    "order_08",
+    "order_09",
+    "order_10",
+    "order_11",
+    "order_12",
+    "order_13",
+    "order_14",
+    "order_15",
+    "order_16",
+    "order_17",
+    "order_18",
+    "order_19",
+    "order_20"
+  ],
+  "window_s": 1.0,
+  "hop_s": 0.5,
+  "V4": {
+    "protocol": "V4",
+    "scheme": "batch control",
+    "targets": {
+      "session": {
+        "accuracy": 0.13619420816209502,
+        "macro_f1": 0.09747556963577701,
+        "per_class_f1": {
+          "2022-01-25": 0.28863033272096345,
+          "2022-03-08": 0.003796376186367558,
+          "2022-08-11": 0.0
+        },
+        "majority_baseline": 0.49746726560259963,
+        "n": 10463
+      },
+      "batch": {
+        "accuracy": 0.13810570582051038,
+        "macro_f1": 0.10554689237978328,
+        "per_class_f1": {
+          "cDAQ1Mod2|+++|kW_<R>ohm_current": 0.0,
+          "cDAQ1Mod2|++-|kw_<R>ohm_current_<type>": 0.0,
+          "cDAQ1Mod2|+--|kW_<R>ohm_current": 0.17458211727248607,
+          "cDAQ1Mod2|+--|kw_<R>ohm_current_<type>": 0.35315234462643036,
+          "cDAQ5Mod1|+++|Current_<R>": 0.0
+        },
+        "majority_baseline": 0.300869731434579,
+        "n": 10463
+      },
+      "chassis": {
+        "accuracy": 0.48886350656767563,
+        "macro_f1": 0.3283467587265056,
+        "per_class_f1": {
+          "cDAQ1Mod2": 0.6566935174530112,
+          "cDAQ5Mod1": 0.0
+        },
+        "majority_baseline": 1.0,
+        "n": 7004
+      },
+      "session_shuffled_LEAKY": {
+        "accuracy": 0.9996177004683169,
+        "macro_f1": 0.9995506492550859,
+        "per_class_f1": {
+          "2022-01-25": 0.999442119944212,
+          "2022-03-08": 0.9998079139454475,
+          "2022-08-11": 0.9994019138755981
+        },
+        "majority_baseline": 0.49746726560259963,
+        "n": 10463
+      },
+      "batch_shuffled_LEAKY": {
+        "accuracy": 0.9992354009366339,
+        "macro_f1": 0.9992313381508433,
+        "per_class_f1": {
+          "cDAQ1Mod2|+++|kW_<R>ohm_current": 0.9989543394911118,
+          "cDAQ1Mod2|++-|kw_<R>ohm_current_<type>": 0.9997569866342648,
+          "cDAQ1Mod2|+--|kW_<R>ohm_current": 0.9988374796558941,
+          "cDAQ1Mod2|+--|kw_<R>ohm_current_<type>": 0.9992059710973479,
+          "cDAQ5Mod1|+++|Current_<R>": 0.9994019138755981
+        },
+        "majority_baseline": 0.300869731434579,
+        "n": 10463
+      },
+      "chassis_shuffled_LEAKY": {
+        "accuracy": 0.9997132753512377,
+        "macro_f1": 0.9994659915523263,
+        "per_class_f1": {
+          "cDAQ1Mod2": 0.999829380651766,
+          "cDAQ5Mod1": 0.9991026024528865
+        },
+        "majority_baseline": 0.8401032208735544,
+        "n": 10463
+      }
+    }
+  },
+  "V4_probe": {
+    "protocol": "V4-probe",
+    "scheme": "1-NN on i0rel_residual (model-free)",
+    "note": "i0rel_residual is |I0|/max(|I1|,|I2|) after the polarity fix. In a three-wire machine this is zero by Kirchhoff whatever the winding is doing, so it carries no winding information by construction.",
+    "n_recordings": 42,
+    "subsets": {
+      "all_motors": {
+        "session": {
+          "loo_1nn_accuracy": 0.9523809523809523,
+          "majority_baseline": 0.47619047619047616
+        },
+        "batch": {
+          "loo_1nn_accuracy": 0.9523809523809523,
+          "majority_baseline": 0.2857142857142857
+        },
+        "chassis": {
+          "loo_1nn_accuracy": 0.9523809523809523,
+          "majority_baseline": 0.8333333333333334
+        },
+        "fault_class": {
+          "loo_1nn_accuracy": 0.8333333333333334,
+          "majority_baseline": 0.5
+        },
+        "n": 42
+      },
+      "1000W_1500W_only": {
+        "session": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.5714285714285714
+        },
+        "batch": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.2857142857142857
+        },
+        "chassis": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 1.0
+        },
+        "fault_class": {
+          "loo_1nn_accuracy": 0.75,
+          "majority_baseline": 0.5
+        },
+        "n": 28
+      },
+      "3000W_only": {
+        "session": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.5
+        },
+        "batch": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.5
+        },
+        "chassis": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.5
+        },
+        "fault_class": {
+          "loo_1nn_accuracy": 1.0,
+          "majority_baseline": 0.5
+        },
+        "n": 14
+      }
+    }
+  },
+  "V1": {
+    "protocol": "V1",
+    "scheme": "leave-one-group-out",
+    "group_key": "group",
+    "labels": [
+      "inter_coil",
+      "inter_turn"
+    ],
+    "excluded_groups": [],
+    "n_groups_scored": 3,
+    "folds": [
+      {
+        "accuracy": 0.4219421369235176,
+        "macro_f1": 0.31652883742228916,
+        "per_class_f1": {
+          "inter_coil": 0.5849444672974085,
+          "inter_turn": 0.04811320754716981
+        },
+        "majority_baseline": 0.5081638498997422,
+        "n": 3491,
+        "fold": 0,
+        "held_out": [
+          "1000W"
+        ],
+        "excluded": false,
+        "train_windows": {
+          "inter_coil": 3437,
+          "inter_turn": 3535
+        },
+        "test_windows": {
+          "inter_coil": 1774,
+          "inter_turn": 1717
+        }
+      },
+      {
+        "accuracy": 0.41360660404212923,
+        "macro_f1": 0.29258960934353606,
+        "per_class_f1": {
+          "inter_coil": 0.5851792186870721,
+          "inter_turn": 0.0
+        },
+        "majority_baseline": 0.502134927412468,
+        "n": 3513,
+        "fold": 1,
+        "held_out": [
+          "1500W"
+        ],
+        "excluded": false,
+        "train_windows": {
+          "inter_coil": 3447,
+          "inter_turn": 3503
+        },
+        "test_windows": {
+          "inter_coil": 1764,
+          "inter_turn": 1749
+        }
+      },
+      {
+        "accuracy": 0.29864122578779995,
+        "macro_f1": 0.2848116304677619,
+        "per_class_f1": {
+          "inter_coil": 0.18535930154466088,
+          "inter_turn": 0.38426395939086294
+        },
+        "majority_baseline": 0.516334200636022,
+        "n": 3459,
+        "fold": 2,
+        "held_out": [
+          "3000W"
+        ],
+        "excluded": false,
+        "train_windows": {
+          "inter_coil": 3538,
+          "inter_turn": 3466
+        },
+        "test_windows": {
+          "inter_coil": 1673,
+          "inter_turn": 1786
+        }
+      }
+    ],
+    "pooled": {
+      "accuracy": 0.3783809614833222,
+      "macro_f1": 0.3455639251613122,
+      "per_class_f1": {
+        "inter_coil": 0.4921130719975012,
+        "inter_turn": 0.19901477832512318
+      },
+      "majority_baseline": 0.5019592850998758,
+      "n": 10463
+    }
+  },
+  "V5": {
+    "protocol": "V5",
+    "scheme": "leave-one-session-out",
+    "group_key": "session",
+    "labels": [
+      "inter_coil",
+      "inter_turn"
+    ],
+    "excluded_groups": [
+      "2022-08-11"
+    ],
+    "n_groups_scored": 2,
+    "folds": [
+      {
+        "accuracy": 0.5291492329149233,
+        "macro_f1": 0.5220474177285414,
+        "per_class_f1": {
+          "inter_coil": 0.580308304326206,
+          "inter_turn": 0.46378653113087676
+        },
+        "majority_baseline": 0.6,
+        "n": 3585,
+        "fold": 0,
+        "held_out": [
+          "2022-01-25"
+        ],
+        "excluded": false,
+        "train_windows": {
+          "inter_coil": 3777,
+          "inter_turn": 3101
+        },
+        "test_windows": {
+          "inter_coil": 1434,
+          "inter_turn": 2151
+        }
+      },
+      {
+        "accuracy": 0.6912584053794428,
+        "macro_f1": 0.690256691046266,
+        "per_class_f1": {
+          "inter_coil": 0.672642085964555,
+          "inter_turn": 0.7078712961279768
+        },
+        "majority_baseline": 0.5957732949087416,
+        "n": 5205,
+        "fold": 1,
+        "held_out": [
+          "2022-03-08"
+        ],
+        "excluded": false,
+        "train_windows": {
+          "inter_coil": 3107,
+          "inter_turn": 2151
+        },
+        "test_windows": {
+          "inter_coil": 2104,
+          "inter_turn": 3101
+        }
+      },
+      {
+        "fold": 2,
+        "held_out": [
+          "2022-08-11"
+        ],
+        "excluded": true,
+        "reason": "group excluded from scoring"
+      }
+    ],
+    "pooled": {
+      "accuracy": 0.6251422070534699,
+      "macro_f1": 0.625045726722928,
+      "per_class_f1": {
+        "inter_coil": 0.6310603515843691,
+        "inter_turn": 0.6190311018614869
+      },
+      "majority_baseline": 0.5974971558589306,
+      "n": 8790
+    },
+    "excluded_reason": "2022-08-11 contains only inter_coil recordings (7/0), so it cannot score a two-class task. It remains in TRAINING for the other folds."
+  },
+  "V3": {
+    "protocol": "V3",
+    "scheme": "shuffled-windows",
+    "leaky": true,
+    "caveat": "(leaky reference) windows split at random, ignoring session and motor",
+    "labels": [
+      "inter_coil",
+      "inter_turn"
+    ],
+    "pooled": {
+      "accuracy": 0.9990442511707923,
+      "macro_f1": 0.9990442392188028,
+      "per_class_f1": {
+        "inter_coil": 0.9990408593899865,
+        "inter_turn": 0.999047619047619
+      },
+      "majority_baseline": 0.5019592850998758,
+      "n": 10463
+    }
+  },
+  "fusion": {
+    "floor": {
+      "min_validation_groups": 3,
+      "min_macro_f1": 0.75,
+      "fixed_at": "2026-09-18T07:19:23Z",
+      "fixed_at_commit": "7344a436b724a08058ca6496d9d1d5936e17226b"
+    },
+    "protocol_used": "V5 (leave-one-session-out)",
+    "n_validation_groups": 2,
+    "honest_macro_f1": 0.625045726722928,
+    "fault_authority": false,
+    "status": "INDICATIVE",
+    "reason": "2 scored validation group(s) against the pre-registered minimum of 3; macro-F1 0.6250 against the minimum of 0.75."
+  },
+  "session_only_baseline": {
+    "source": "V4_probe.subsets.1000W_1500W_only.fault_class",
+    "note": "1-NN on i0rel_residual alone -- a scalar that cannot contain winding information. Any fault-class score that does not clearly beat this is not demonstrating winding diagnosis."
+  },
+  "seconds": 112.8
+}

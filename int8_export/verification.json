@@ -1,0 +1,44 @@
+{
+  "n_weights": 27024,
+  "n_biases": 179,
+  "accumulator": {
+    "conv1": {
+      "terms": 45,
+      "peak_abs": 733886,
+      "bits_needed": 21,
+      "fits_int32": true
+    },
+    "conv2": {
+      "terms": 112,
+      "peak_abs": 1839894,
+      "bits_needed": 22,
+      "fits_int32": true
+    },
+    "conv3": {
+      "terms": 160,
+      "peak_abs": 2642495,
+      "bits_needed": 23,
+      "fits_int32": true
+    },
+    "conv4": {
+      "terms": 192,
+      "peak_abs": 3149695,
+      "bits_needed": 23,
+      "fits_int32": true
+    },
+    "fc": {
+      "terms": 64,
+      "peak_abs": 1041656,
+      "bits_needed": 21,
+      "fits_int32": true
+    }
+  },
+  "agreement": {
+    "n": 2048,
+    "argmax_agreement": 0.99853515625,
+    "max_abs_logit_diff": 1.3486332068558036,
+    "mean_abs_logit_diff": 0.07535494939636381
+  },
+  "float_accuracy": 0.994140625,
+  "int8_accuracy": 0.99267578125
+}

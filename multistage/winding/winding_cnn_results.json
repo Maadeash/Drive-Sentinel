@@ -1,0 +1,380 @@
+{
+  "experiment": "d2_cnn",
+  "status": "POST-HOC -- run after the gradient-boosting result was known",
+  "task": "inter_coil vs inter_turn",
+  "recipe": {
+    "architecture": "OrderSpectrumCNN (16,9,2)(32,7,2)(64,5,2)(64,3,2) + GAP + linear",
+    "in_channels": 1,
+    "n_classes": 2,
+    "n_bins": 512,
+    "order_max": 20.0,
+    "epochs": 30,
+    "batch_size": 256,
+    "lr": 0.003,
+    "weight_decay": 0.0001,
+    "label_smoothing": 0.05,
+    "schedule": "OneCycle",
+    "class_weights": true,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "ensemble": false,
+    "tta": false,
+    "declared_before_run": true
+  },
+  "acceptance": {
+    "criterion_1_beat_session_baseline": 0.75,
+    "criterion_2_beat_gbm_by_more_than_seed_spread": 0.6251,
+    "gbm_v5_accuracy": 0.6251,
+    "gbm_v5_macro_f1": 0.625,
+    "session_only_baseline": 0.75,
+    "declared_before_run": true
+  },
+  "n_windows": 10463,
+  "V1_leave_one_motor_out": {
+    "per_seed": [
+      {
+        "folds": [
+          {
+            "accuracy": 0.467774276711544,
+            "macro_f1": 0.4599196991800057,
+            "majority_baseline": 0.5081638498997422,
+            "n": 3491,
+            "held_out": [
+              "1000W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.4443495587816681,
+            "macro_f1": 0.44424143480127026,
+            "majority_baseline": 0.502134927412468,
+            "n": 3513,
+            "held_out": [
+              "1500W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.501879155825383,
+            "macro_f1": 0.47417256288354453,
+            "majority_baseline": 0.516334200636022,
+            "n": 3459,
+            "held_out": [
+              "3000W"
+            ],
+            "excluded": false
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.47118417279938835,
+          "macro_f1": 0.4645342539694352,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "n_groups_scored": 3
+      },
+      {
+        "folds": [
+          {
+            "accuracy": 0.45746204525923806,
+            "macro_f1": 0.44998615805504694,
+            "majority_baseline": 0.5081638498997422,
+            "n": 3491,
+            "held_out": [
+              "1000W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.42783945345858243,
+            "macro_f1": 0.42745527243902637,
+            "majority_baseline": 0.502134927412468,
+            "n": 3513,
+            "held_out": [
+              "1500W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.5079502746458514,
+            "macro_f1": 0.47750246373271843,
+            "majority_baseline": 0.516334200636022,
+            "n": 3459,
+            "held_out": [
+              "3000W"
+            ],
+            "excluded": false
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.46420720634617224,
+          "macro_f1": 0.4576438992340682,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "n_groups_scored": 3
+      },
+      {
+        "folds": [
+          {
+            "accuracy": 0.48753938699513033,
+            "macro_f1": 0.48510583428920007,
+            "majority_baseline": 0.5081638498997422,
+            "n": 3491,
+            "held_out": [
+              "1000W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.44235695986336465,
+            "macro_f1": 0.4422846535401682,
+            "majority_baseline": 0.502134927412468,
+            "n": 3513,
+            "held_out": [
+              "1500W"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.5117085862966175,
+            "macro_f1": 0.488684636036032,
+            "majority_baseline": 0.516334200636022,
+            "n": 3459,
+            "held_out": [
+              "3000W"
+            ],
+            "excluded": false
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.4803593615597821,
+          "macro_f1": 0.4761852987015996,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "n_groups_scored": 3
+      }
+    ],
+    "accuracy": {
+      "mean": 0.47191691356844756,
+      "std": 0.008100969774484849,
+      "values": [
+        0.47118417279938835,
+        0.46420720634617224,
+        0.4803593615597821
+      ]
+    },
+    "macro_f1": {
+      "mean": 0.4661211506350343,
+      "std": 0.009372009086855964,
+      "values": [
+        0.4645342539694352,
+        0.4576438992340682,
+        0.4761852987015996
+      ]
+    }
+  },
+  "V5_leave_one_session_out": {
+    "per_seed": [
+      {
+        "folds": [
+          {
+            "accuracy": 0.5765690376569038,
+            "macro_f1": 0.53524516579068,
+            "majority_baseline": 0.6,
+            "n": 3585,
+            "held_out": [
+              "2022-01-25"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.5367915465898175,
+            "macro_f1": 0.5239152694900079,
+            "majority_baseline": 0.5957732949087416,
+            "n": 5205,
+            "held_out": [
+              "2022-03-08"
+            ],
+            "excluded": false
+          },
+          {
+            "held_out": [
+              "2022-08-11"
+            ],
+            "excluded": true
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.5530147895335609,
+          "macro_f1": 0.5304971996768557,
+          "majority_baseline": 0.5974971558589306,
+          "n": 8790
+        },
+        "n_groups_scored": 2
+      },
+      {
+        "folds": [
+          {
+            "accuracy": 0.5693165969316597,
+            "macro_f1": 0.5454790303710306,
+            "majority_baseline": 0.6,
+            "n": 3585,
+            "held_out": [
+              "2022-01-25"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.5404418828049952,
+            "macro_f1": 0.5270140489101198,
+            "majority_baseline": 0.5957732949087416,
+            "n": 5205,
+            "held_out": [
+              "2022-03-08"
+            ],
+            "excluded": false
+          },
+          {
+            "held_out": [
+              "2022-08-11"
+            ],
+            "excluded": true
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.5522184300341297,
+          "macro_f1": 0.5348612095234777,
+          "majority_baseline": 0.5974971558589306,
+          "n": 8790
+        },
+        "n_groups_scored": 2
+      },
+      {
+        "folds": [
+          {
+            "accuracy": 0.6198047419804742,
+            "macro_f1": 0.572548273123384,
+            "majority_baseline": 0.6,
+            "n": 3585,
+            "held_out": [
+              "2022-01-25"
+            ],
+            "excluded": false
+          },
+          {
+            "accuracy": 0.5477425552353506,
+            "macro_f1": 0.5369399092970522,
+            "majority_baseline": 0.5957732949087416,
+            "n": 5205,
+            "held_out": [
+              "2022-03-08"
+            ],
+            "excluded": false
+          },
+          {
+            "held_out": [
+              "2022-08-11"
+            ],
+            "excluded": true
+          }
+        ],
+        "pooled": {
+          "accuracy": 0.5771331058020478,
+          "macro_f1": 0.5543611115024918,
+          "majority_baseline": 0.5974971558589306,
+          "n": 8790
+        },
+        "n_groups_scored": 2
+      }
+    ],
+    "accuracy": {
+      "mean": 0.5607887751232461,
+      "std": 0.014160205016757224,
+      "values": [
+        0.5530147895335609,
+        0.5522184300341297,
+        0.5771331058020478
+      ]
+    },
+    "macro_f1": {
+      "mean": 0.5399065069009418,
+      "std": 0.0127068029466785,
+      "values": [
+        0.5304971996768557,
+        0.5348612095234777,
+        0.5543611115024918
+      ]
+    },
+    "n_groups_scored": 2
+  },
+  "V3_shuffled_LEAKY": {
+    "per_seed": [
+      {
+        "pooled": {
+          "accuracy": 0.8404855204052375,
+          "macro_f1": 0.8404652292433126,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "leaky": true,
+        "caveat": "(leaky reference) windows split at random, ignoring session and motor"
+      },
+      {
+        "pooled": {
+          "accuracy": 0.8401987957564752,
+          "macro_f1": 0.8401933639782602,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "leaky": true,
+        "caveat": "(leaky reference) windows split at random, ignoring session and motor"
+      },
+      {
+        "pooled": {
+          "accuracy": 0.8537704291312244,
+          "macro_f1": 0.8537495551748703,
+          "majority_baseline": 0.5019592850998758,
+          "n": 10463
+        },
+        "leaky": true,
+        "caveat": "(leaky reference) windows split at random, ignoring session and motor"
+      }
+    ],
+    "accuracy": {
+      "mean": 0.844818248430979,
+      "std": 0.007754141295039449,
+      "values": [
+        0.8404855204052375,
+        0.8401987957564752,
+        0.8537704291312244
+      ]
+    },
+    "macro_f1": {
+      "mean": 0.8448027161321477,
+      "std": 0.007749382189753882,
+      "values": [
+        0.8404652292433126,
+        0.8401933639782602,
+        0.8537495551748703
+      ]
+    }
+  },
+  "verdict": {
+    "v5_accuracy_mean": 0.5607887751232461,
+    "v5_accuracy_std": 0.014160205016757224,
+    "criterion_1_beats_session_baseline": false,
+    "criterion_1_margin": -0.1892112248767539,
+    "criterion_2_beats_gbm_by_more_than_seed_spread": false,
+    "criterion_2_margin": -0.06431122487675389,
+    "seed_spread": 0.014160205016757224,
+    "outcome": "NEGATIVE RESULT",
+    "shipped_branch": "gradient boosting (unchanged)",
+    "tier_unchanged": "INDICATIVE -- 2 validation groups against a floor of 3, whatever this scores. The floor is on GROUPS as well as macro-F1 and was pre-registered before any branch existed."
+  },
+  "seconds": 2557.8
+}
