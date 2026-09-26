@@ -1,0 +1,58 @@
+{
+  "what_this_is": "notebook dry run against a software mock of pynq. NOT a hardware run. Tests the notebook's code, not the FPGA.",
+  "all_cells_ran": true,
+  "cells": [
+    {
+      "cell": 2,
+      "status": "ok",
+      "stdout": "IP blocks: ['axi_dma_0', 'ds_0']\ncore at 0x43c00000 range 0x1000\n"
+    },
+    {
+      "cell": 4,
+      "status": "ok",
+      "stdout": "MAGIC    0x44533031  ok\nBUILD_ID 0x23eb56bf  expected 0x23eb56bf  MATCH\nCONFIG   frac_w=26 lanes=1 logit_shift=16\n"
+    },
+    {
+      "cell": 6,
+      "status": "ok",
+      "stdout": "120 windows; classes [40 40 40]\nPS quantiser reproduces the packaged int8 bytes on all 120 windows\n"
+    },
+    {
+      "cell": 8,
+      "status": "ok",
+      "stdout": "{'class': 0, 'logits': [30625988, -9480577, -20936601], 'cycles': 1786724, 'dma_s': 0.004943600040860474, 'total_s': 0.0049570000264793634}\n"
+    },
+    {
+      "cell": 10,
+      "status": "ok",
+      "stdout": "class vs golden_reference : 120/120 agree\nlogit registers vs model  : 120/120 exact\ncycles == 1,786,724      : 120/120\naccuracy vs ground truth (in-sample windows, NOT a generalisation estimate): 0.975\n"
+    },
+    {
+      "cell": 12,
+      "status": "ok",
+      "stdout": "(timing output discarded: the mock does not model time)\n"
+    },
+    {
+      "cell": 14,
+      "status": "ok",
+      "stdout": "{\n  \"ran_on_hardware\": false,\n  \"date_utc\": \"2026-09-21T09:38:52.204007Z\",\n  \"board\": \"PYNQ-Z2 (edit if different)\",\n  \"pynq_version\": \"MOCK-not-pynq\",\n  \"platform\": \"Windows-11-10.0.26200-SP0\",\n  \"bitstream\": \"drivesentinel.bit\",\n  \"build_id\": \"0x23eb56bf\",\n  \"build_id_match\": true,\n  \"windows\": 120,\n  \"class_agree_with_golden\": 120,\n  \"class_disagreement_windows\": [],\n  \"logit_registers_exact\": 120,\n  \"cycles_equal_simulation\": 120\n}\n"
+    }
+  ],
+  "result": {
+    "ran_on_hardware": false,
+    "date_utc": "2026-09-21T09:38:52.204007Z",
+    "board": "NONE -- software stand-in for pynq (board/dryrun/pynq)",
+    "pynq_version": "MOCK",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "bitstream": "drivesentinel.bit",
+    "build_id": "0x23eb56bf",
+    "build_id_match": true,
+    "windows": 120,
+    "class_agree_with_golden": 120,
+    "class_disagreement_windows": [],
+    "logit_registers_exact": 120,
+    "cycles_equal_simulation": 120,
+    "timing": "discarded: the mock does not model time",
+    "mock": true
+  }
+}

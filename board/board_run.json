@@ -1,0 +1,33 @@
+{
+  "ran_on_hardware": true,
+  "date_utc": "2026-08-31T17:37:03.640288Z",
+  "board": "PYNQ-Z2 (edit if different)",
+  "pynq_version": "2.5",
+  "numpy_version": "1.13.3",
+  "platform": "Linux-4.19.0-xilinx-v2019.1-armv7l-with-pynqlinux-v2.5-glasgow",
+  "bitstream": "drivesentinel.bit",
+  "build_id": "0x23eb56bf",
+  "build_id_match": true,
+  "windows": 120,
+  "class_agree_with_golden": 120,
+  "class_disagreement_windows": [],
+  "logit_registers_exact": 120,
+  "cycles_equal_simulation": 120,
+  "timing": {
+    "fabric_ms_at_100MHz": 17.86724,
+    "dma_plus_inference_wall": {
+      "median_ms": 18.072491499879106,
+      "p95_ms": 18.112337899947306,
+      "min_ms": 18.05231000071217,
+      "max_ms": 18.31725200099754
+    },
+    "dma_transfer_wall": {
+      "median_ms": 0.2093739994961652,
+      "p95_ms": 0.2474738990713377,
+      "min_ms": 0.20411299919942394,
+      "max_ms": 0.35478800054988824
+    },
+    "golden_reference_on_arm_ms_per_window": 40.88764395000908,
+    "windows_timed": 360
+  }
+}
