@@ -1,0 +1,363 @@
+{
+  "00_signin_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "00_signin_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "01_fleet_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "01_fleet_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "02_lift_07_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "02_lift_07_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "02_lift_01_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "02_lift_01_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "03_alerts_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "03_alerts_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "03_alerts_filter_alarm_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "03_alerts_filter_alarm_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_bearing_alarm_outer_race_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_bearing_alarm_outer_race_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_bearing_alarm_inner_race_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_bearing_alarm_inner_race_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_supply_phase_lost_running_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_supply_phase_lost_running_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_supply_started_phase_missing_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_supply_started_phase_missing_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_open_circuit_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_open_circuit_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_short_circuit_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_short_circuit_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_overheating_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_inverter_overheating_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_winding_lift_07_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_winding_lift_07_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_winding_lift_03_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "04_why_winding_lift_03_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "05_monitor_bearing_alarm_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ALARM",
+    "headline": "Outer-race bearing damage",
+    "detail": []
+  },
+  "05_monitor_bearing_alarm_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ALARM",
+    "headline": "Outer-race bearing damage",
+    "detail": []
+  },
+  "05_monitor_inverter_advisory_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ADVISORY",
+    "headline": "Open circuit in the inverter",
+    "detail": []
+  },
+  "05_monitor_inverter_advisory_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ADVISORY",
+    "headline": "Open circuit in the inverter",
+    "detail": []
+  },
+  "05_monitor_winding_advisory_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ADVISORY",
+    "headline": "Winding anomaly detected",
+    "detail": []
+  },
+  "05_monitor_winding_advisory_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "alerts_arrived": 1,
+    "status": "ADVISORY",
+    "headline": "Winding anomaly detected",
+    "detail": []
+  },
+  "06_sensors_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "06_sensors_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "07_hardware_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "07_hardware_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "08_about_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "08_about_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "09_settings_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "09_settings_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "10_engineering_laptop": {
+    "errors": 0,
+    "scroll_width": 1280,
+    "viewport": 1280,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "10_engineering_phone": {
+    "errors": 0,
+    "scroll_width": 390,
+    "viewport": 390,
+    "banned_in_rendered_text": [],
+    "detail": []
+  },
+  "_navigation_laptop": {
+    "failed": "click to About did not render in 45 s: 'About\\nOverview\\nStages\\nAlert levels\\nDecision rule\\nEdge hardware\\nRoadmap'"
+  },
+  "_navigation_phone": {
+    "failed": "settings did not render in 45 s: 'Settings\\nData source\\nStreaming\\nRestart drive stream\\nBearing engine\\nActive\\n\u2014\\nBoard\\n\u2014\\nWindows\\n\u2014\\nBoard address\\nSave\\nAlert delivery\\nAccount\\nSigned in as\\n\u2014\\nSession\\nSigns out automatically after 8 hours\\nSign out'"
+  },
+  "_navigation_manual_browser_pane": {
+    "date": "2026-09-22",
+    "why": "The headless-Edge navigation check stalls on a later page in one long session (page script never runs; the server answered every API in <0.2 s). The same sequence was run by hand in the desktop app's browser pane.",
+    "sequence": "/fleet -> /alerts -> /monitor -> /hardware, back, back, forward, click About, /settings, Sign out, /fleet",
+    "result": {
+      "back_forward": "ok",
+      "click_about": "rendered with content",
+      "settings_engine": "Software / No address set / Software 480 \u00b7 FPGA (PYNQ-Z2) 0",
+      "sign_out": "/signin?signed_out=1",
+      "fleet_after_sign_out": "/signin?next=%2Ffleet",
+      "phone_375px": "sign-in and settings render, scrollWidth 375, engine Software",
+      "console_errors": 0
+    },
+    "session": "cookie from POST /signin set in the pane; the password was not typed into the form by the agent"
+  }
+}
