@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hardware · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Hardware</h1>
+    </div>
+  </div>
+
+  <div class="card">
+    <ul class="check-list" id="milestones"><li class="skeleton" style="height:120px"></li></ul>
+  </div>
+
+  <div class="hero-facts section" id="facts"></div>
+
+  <div class="section">
+    <div class="section-title"><h2>Resources</h2></div>
+    <div class="grid two" id="res"></div>
+  </div>
+
+  <div class="card section"><h3>Verification</h3>
+    <div id="verify"></div></div>
+
+  <div class="card section"><div class="section-title"><h3>V-1 run</h3><span class="live idle" id="v1live">In progress</span></div>
+    <div id="v1"></div></div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/hardware");
+  const pctOf = (u, a) => (100 * u / a).toFixed(1);
+  const bar = (u, a) => `<div class="progress" style="margin-top:6px"><div style="width:${Math.max(1.5, 100 * u / a)}%"></div></div>`;
+  const resCard = (title, sub, r) => `<div class="card"><h3>${title}</h3><p class="small muted">${sub}</p>
+    <div class="table-wrap"><table class="data"><tbody>
+      ${[["Logic (LUT)", r.lut, r.lut_available], ["Flip-flops", r.ff, r.ff_available],
+         ["Block RAM", r.bram, r.bram_available], ["DSP slices", r.dsp, r.dsp_available]].map(([k, u, a]) =>
+        `<tr><td>${k}${bar(u, a)}</td><td class="r">${DS.int(u)} / ${DS.int(a)}<div class="small muted">${pctOf(u, a)} %</div></td></tr>`).join("")}
+      <tr><td>Timing at 100 MHz</td><td class="r">${r.timing_met ? `<span class="pill-ok">${DS.ICON.check} met</span>` : "—"}
+        <div class="small muted">slack ${DS.fmt(r.wns_ns, 3)} ns</div></td></tr>
+    </tbody></table></div></div>`;
+
+  async function render() {
+    const h = await DS.json("/api/hardware");
+    const v = h.verification;
+    const V1 = h.v1_live || h.v1_committed;
+    const checksPass = v.v2_logit_lsb === 0 && v.v3.acc_mismatches === 0 && v.v4.q_mismatches === 0 &&
+      v.v5.class_mismatches === 0 && v.v5.logit_mismatches === 0 && v.v6.match;
+    document.getElementById("milestones").innerHTML = `
+      <li><span class="chk">${DS.ICON.check}</span><div><b>Verified bit-exact in simulation</b>
+        <div class="small muted">${checksPass ? "Every completed check matches the reference exactly" : "Verification in progress"}${V1 ? ` · full run ${pctOf(V1.windows_run, V1.windows_expected)} % complete, ${V1.class_mismatches + V1.logit_mismatches} disagreements` : ""}</div></div></li>
+      <li><span class="chk">${DS.ICON.check}</span><div><b>Synthesised for Zynq-7020</b>
+        <div class="small muted">${DS.esc(h.part)} · placed and routed${h.full_system && h.full_system.timing_met ? " with timing met at 100 MHz" : ""}${h.bitstream_written ? " · bitstream generated" : ""}</div></div></li>
+      <li><span class="chk">${DS.ICON.check}</span><div><b>Fixed cycle count per verdict</b>
+        <div class="small muted">${DS.int(h.cycles)} cycles for every observation, whatever the input</div></div></li>
+      ${h.ran_on_hardware ? `<li><span class="chk">${DS.ICON.check}</span><div><b>Running on ${DS.esc(h.board.board)}</b>
+        <div class="small muted">Build ID ${DS.esc(h.board.build_id)} ${h.board.build_id_match ? "matched" : "did not match"} · ${h.board.logits_exact} of ${h.board.windows} verdicts bit-exact on the board · ${DS.fmt(h.board.median_ms, 1)} ms per verdict${h.board.served ? ` · as this app's bearing engine, ${h.board.served.logits_exact} of ${h.board.served.windows} bit-exact` : ""}</div></div></li>`
+      : `<li><span class="chk next">${DS.ICON.arrow}</span><div><b>Board deployment: next step</b>
+        <div class="small muted">Load the generated bitstream onto a PYNQ-Z2 and connect it through the drive interface.</div></div></li>`}`;
+
+    document.getElementById("facts").innerHTML = `
+      <div class="card kpi accent"><div class="k">Cycles per verdict</div><div class="v">${DS.int(h.cycles)}</div>
+        <div class="s">Fixed · ${DS.fmt(h.latency_us_100mhz / 1000, 1)} ms at 100 MHz</div></div>
+      <div class="card kpi accent"><div class="k">Model size</div><div class="v">${DS.int(h.weights)}</div>
+        <div class="s">8-bit weights · ${DS.int(h.macs)} multiply-adds per observation</div></div>
+      <div class="card kpi accent"><div class="k">Core clock</div><div class="v">${DS.fmt(h.achieved_mhz_core, 1)}</div>
+        <div class="s">MHz achievable by the core alone</div></div>`;
+
+    document.getElementById("res").innerHTML =
+      resCard("Core only", "Accelerator alone, out of context", h.core_only) +
+      resCard("Full system", "Core, DMA and interconnect, placed and routed", h.full_system);
+
+    document.getElementById("verify").innerHTML = `<div class="table-wrap"><table class="data">
+      <thead><tr><th>Check</th><th>Compared</th><th class="r">Result</th></tr></thead><tbody>
+      <tr><td>V-2</td><td>Output scores against the INT8 reference</td><td class="r">${v.v2_logit_lsb} LSB difference</td></tr>
+      <tr><td>V-3</td><td>${DS.int(v.v3.acc_compared)} internal accumulator values over ${v.v3.windows_run} windows</td><td class="r">${v.v3.acc_mismatches} mismatches</td></tr>
+      <tr><td>V-4</td><td>${DS.int(v.v4.vectors)} rescaling vectors, including ${DS.int(v.v4.exact_ties)} exact rounding ties</td><td class="r">${v.v4.q_mismatches} mismatches</td></tr>
+      <tr><td>V-5</td><td>${v.v5.windows_run} windows end to end through the full-system simulation</td><td class="r">${v.v5.class_mismatches} class, ${v.v5.logit_mismatches} score mismatches</td></tr>
+      <tr><td>V-6</td><td>Build ID in the bitstream against the build record</td><td class="r">${v.v6.match ? "match" : "—"} <span class="mono">0x${DS.esc(v.v6.build_id)}</span></td></tr>
+      </tbody></table></div>`;
+
+    if (V1) {
+      const done = V1.complete;
+      document.getElementById("v1").innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px">
+          <b class="num">${DS.int(V1.windows_run)} of ${DS.int(V1.windows_expected)} windows</b>
+          <span class="num muted">${pctOf(V1.windows_run, V1.windows_expected)} % · ${V1.class_mismatches} class, ${V1.logit_mismatches} score disagreements</span></div>
+        <div class="progress" style="margin-top:10px"><div style="width:${100 * V1.windows_run / V1.windows_expected}%"></div></div>`;
+      const live = document.getElementById("v1live");
+      live.className = "live" + (done ? "" : " idle");
+      live.textContent = done ? "Complete" : "In progress";
+    } else {
+      document.getElementById("v1").innerHTML = `<p class="muted">—</p>`;
+      document.getElementById("v1live").textContent = "";
+    }
+  }
+  await render();
+  DS.every(15000, render);
+})();
+</script>
+</body>
+</html>

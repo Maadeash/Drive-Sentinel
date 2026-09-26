@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engineering view · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <h1>Engineering view</h1>
+
+  <div class="card section"><h3>Stage ratings</h3><div id="rows"></div></div>
+  <div class="card section"><h3>Alarm authority</h3><div id="floor"></div><div id="authority"></div></div>
+  <div class="section"><h2>Metrics per stage</h2><div class="grid two" id="cards"></div></div>
+  <div class="grid two section">
+    <div class="card"><h3>Bearing, pooled</h3><div id="lobo"></div></div>
+    <div class="card"><h3>KI05 miss</h3><div id="ki05"></div></div>
+  </div>
+  <div class="card section"><h3>Fusion settings</h3><div id="fusion"></div></div>
+  <div class="card section"><h3>Order resolution</h3><p class="small muted" id="tripcap"></p><div id="res"></div></div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/engineering");
+  const d = await DS.json("/api/engineering");
+  const table = (head, rows) => `<div class="table-wrap"><table class="data"><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const kv = pairs => `<div class="kv">${pairs.map(([k, v]) => `<span class="k">${k}</span><span>${v}</span>`).join("")}</div>`;
+
+  document.getElementById("rows").innerHTML = table(["Stage", "Name", "Tier (internal)", "Metric · protocol · groups"],
+    d.stage_rows.map(r => [r.stage, DS.esc(r.name), DS.esc(r.tier), `<span class="mono small">${DS.esc(r.metric_line || "NOT MEASURED")}</span>`]));
+
+  const f = d.floor;
+  document.getElementById("floor").innerHTML = `<p>A stage may raise an alarm on its own only with at least <b>${f.min_validation_groups}</b>
+    independent validation groups <b>and</b> an honest macro-F1 of at least <b>${f.min_macro_f1}</b>. Fixed ${DS.esc(f.fixed_at)}
+    (commit <span class="mono">${DS.esc(String(f.fixed_at_commit || "").slice(0, 10))}</span>), before any multi-stage result existed.</p>`;
+  document.getElementById("authority").innerHTML = table(["Stage", "Branch", "Protocol", "Groups", "macro-F1", "Groups ≥ floor", "F1 ≥ floor", "Tier"],
+    d.authority.map(a => [a.stage, DS.esc(a.branch), DS.esc(a.protocol || "—"), a.n_validation_groups ?? "—",
+      a.macro_f1 == null ? "NOT RUN" : DS.fmt(a.macro_f1), a.groups_test ? "yes" : "no", a.metric_test ? "yes" : "no",
+      DS.esc(a.tier) + (a.note ? ` <span class="small muted">(${DS.esc(a.note)})</span>` : "")]));
+
+  document.getElementById("cards").innerHTML = d.metric_cards.map(c => `<div class="card">
+    <h3>${DS.esc(c.stage)} · ${DS.esc(c.branch)}</h3>
+    ${kv([["Tier", DS.esc(c.tier)], [DS.esc(c.metric_name || "metric"), `<b>${DS.esc(c.metric ?? "NOT RUN")}</b>`],
+          ["Protocol", DS.esc(c.protocol || "—")], ["Groups", `${c.groups ?? "—"} (floor ${c.groups_floor})`],
+          ["Source", `<span class="mono small">${DS.esc(c.source || "—")}</span>`]])}
+    ${c.note ? `<p class="small muted">${DS.esc(c.note)}</p>` : ""}
+    ${(c.extra || []).length ? table(["Also measured", "Value", ""], c.extra.map(e => [DS.esc(e.label), `<b>${DS.esc(e.value)}</b>`, `<span class="small muted">${DS.esc(e.sub || "")}</span>`])) : ""}
+  </div>`).join("");
+
+  const L = d.lobo_pooled;
+  document.getElementById("lobo").innerHTML = L ? kv([
+    ["Protocol", "leave-one-bearing-out"], ["macro-F1", DS.fmt(L.macro_f1)], ["Window accuracy", DS.fmt(L.window_acc)], ["Recording accuracy", DS.fmt(L.recording_acc)],
+    ["Majority baseline", DS.fmt(L.majority_baseline)], ["Windows / recordings", `${DS.int(L.n_windows)} / ${DS.int(L.n_recordings)}`],
+    ["Source", `<span class="mono small">artifacts/runs/lobo_summary.json</span>`]]) : "NOT RUN";
+  const K = d.ki05;
+  document.getElementById("ki05").innerHTML = K ? kv([
+    ["Label", `${DS.esc(K.test_label)} (${DS.esc(K.origin)} damage)`], ["Fold", K.fold],
+    ["Window accuracy", DS.fmt(K.window_acc)], ["Recording accuracy", DS.fmt(K.recording_acc)],
+    ["Test windows / recordings", `${DS.int(K.n_test_windows)} / ${DS.int(K.n_test_recordings)}`],
+    ["Protocol", "leave-one-bearing-out"]]) + `<p class="small muted">Shipped as replay DEMO-04 on purpose; it raises no alert.</p>` : "NOT RUN";
+
+  const F = d.fusion;
+  document.getElementById("fusion").innerHTML = kv([["Rolling window", `${F.rolling_window} observations`],
+    ["Fault threshold", F.tau_fault], ["Warning threshold", F.tau_warning], ["Hysteresis", F.hysteresis],
+    ["Consecutive observations to change status", F.k_consecutive], ["Source", `<span class="mono small">config.FUSION_CONFIG</span>`]]);
+
+  document.getElementById("tripcap").textContent = d.trip.caption;
+  document.getElementById("res").innerHTML = table(["Shaft rpm", "Revolutions in 1 s window", "Order resolution", "Source"],
+    d.resolution.map(r => [DS.fmt(r.shaft_rpm, 0), DS.fmt(r.revs, 2), DS.fmt(r.order_resolution, 3), DS.esc(r.source)])) +
+    `<p class="small muted">BPFO ${DS.fmt(d.trip.bpfo, 2)} and BPFI ${DS.fmt(d.trip.bpfi, 2)} are ${DS.fmt(d.trip.gap, 2)} orders apart.
+      At 900 rpm a ${d.trip.window_s} s window resolves ${DS.fmt(d.trip.at_900, 4)} orders; at 20 rpm it resolves ${DS.fmt(d.trip.at_20, 2)},
+      wider than the gap, so the two lines merge. Holding 900 rpm resolution at 20 rpm needs a ${DS.fmt(d.trip.needed_window_at_20, 0)} s window.
+      Arithmetic, not a performance claim. Rows marked EXTRAPOLATION are not measured.</p>`;
+})();
+</script>
+</body>
+</html>

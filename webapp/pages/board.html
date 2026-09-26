@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Board live · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Board live</h1>
+    </div>
+    <span class="live idle" id="live">Connecting…</span>
+  </div>
+
+  <div id="problem"></div>
+
+  <div class="grid four">
+    <div class="card kpi"><div class="k">On the board now</div>
+      <div class="v" id="k-now" style="font-size:1.35rem">—</div><div class="s" id="k-now-s"></div></div>
+    <div class="card kpi"><div class="k">Board time per 4 s of signal</div>
+      <div class="v" id="k-time">—</div><div class="s" id="k-time-s"></div></div>
+    <div class="card kpi"><div class="k">Windows through the FPGA</div>
+      <div class="v" id="k-windows">—</div><div class="s" id="k-windows-s"></div></div>
+    <div class="card kpi"><div class="k">Board results checked</div>
+      <div class="v" id="k-check">—</div><div class="s" id="k-check-s"></div></div>
+  </div>
+
+  <div class="card section">
+    <div class="section-title" style="margin-bottom:12px"><h3>Bearing, lift by lift</h3>
+      <span class="small muted">the same statuses as the Fleet page</span></div>
+    <div class="grid four" id="lifts"></div>
+  </div>
+
+  <div class="card section">
+    <div class="section-title" style="margin-bottom:12px"><h3>What the board did with the latest 4 s</h3>
+      <span class="small muted" id="pipe-when"></span></div>
+    <div class="pipeline" id="pipeline"></div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card">
+      <div class="section-title"><h3>Signal sent to the board</h3><span class="small muted" id="raw-when"></span></div>
+      <div class="small muted" style="margin-top:6px">Vibration, first 20 ms at 64 kHz</div>
+      <div id="raw-vib"></div>
+      <div class="small muted" style="margin-top:10px">Motor current, two phases, first 100 ms</div>
+      <div id="raw-cur"></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h3>Spectrum computed on the board</h3><span class="small muted" id="spec-when"></span></div>
+      <div id="spectrum" style="margin-top:10px"></div>
+      <p class="small muted" id="spec-caption"></p>
+      <div class="chips" id="chips" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card"><div class="section-title" style="margin-bottom:10px"><h3>Bearing alerts</h3>
+      <span class="small muted" id="n-alerts"></span></div>
+      <div class="feed-scroll" id="alerts"></div></div>
+    <div class="card"><h3>The board</h3><div class="kv" id="board" style="margin-top:10px"></div></div>
+  </div>
+
+  <div class="card section">
+    <h3>Latest segments</h3>
+    <div class="table-wrap" style="margin-top:10px"><table class="data">
+      <thead><tr><th>Lift</th><th>Segment</th><th>Arrived</th><th class="r">Shaft speed</th><th>Verdicts</th>
+        <th class="r">On the board</th><th class="r">Round trip</th><th class="r">Matches laptop</th></tr></thead>
+      <tbody id="log"></tbody></table></div>
+  </div>
+
+  <div class="card section"><h3>What is live here</h3>
+    <p class="small">This page is a view of the stream behind the Fleet, Alerts and Live monitor pages. For the
+      bearing, this computer sends the raw motor current and vibration of each lift in turn, 4 s at a time, to the
+      PYNQ-Z2. The board's ARM cores filter the signal, find the shaft speed and compute the spectra, and its FPGA
+      runs the network. Every bearing status and bearing alert in this app comes from those results. The power
+      supply, inverter and motor winding stages are computed on this computer.</p>
+    <p class="small">The samples come from stored test-rig sensor data; no sensor is wired to the board. For every
+      4 s, this computer runs the same signal processing itself and checks the board's network input byte by byte,
+      and that the FPGA's outputs match the bit-accurate model exactly.</p>
+    <p class="small muted">The network deployed on the board was trained on data that includes this test rig, so
+      these verdicts show the board working. They do not measure how it would do on a machine it has never seen.
+      The About page gives that figure, measured on bearings withheld from training.</p>
+  </div>
+</main>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/signals.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/board");
+  const $ = id => document.getElementById(id);
+  const NAME = {healthy: "Healthy", inner_race: "Inner race", outer_race: "Outer race"};
+  const PHASES = ["#1d3572", "#b45309"];
+  let st = null, lastSeg, anim = null, frame = 0, drawnAlerts = -1;
+
+  const num = v => v >= 1000 ? (v / 1000).toFixed(2) : v >= 10 ? String(Math.round(v)) : v.toFixed(1);
+  const ms = v => v == null ? "—" : num(v) + `<small>${v >= 1000 ? "s" : "ms"}</small>`;
+  const mb = b => b == null ? "—" : (b / 1e6).toFixed(1) + " MB";
+  const empty = (el, text) => { el.classList.remove("chart"); el.innerHTML = `<div class="empty" style="padding:40px 12px">${DS.esc(text)}</div>`; };
+  const running = s => s && s.status === "running";
+
+  function majority(wins) {
+    const n = {};
+    wins.forEach(w => n[w.label] = (n[w.label] || 0) + 1);
+    return Object.entries(n).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${NAME[k] || k} ${v}/${wins.length}`).join(", ");
+  }
+
+  function drawStatus() {
+    const live = $("live");
+    live.className = "live" + (running(st) ? "" : " idle");
+    live.textContent = ({running: "Streaming from the board", done: "All segments processed",
+      off: "Board not in use", error: "Stopped", idle: "Starting…"})[st.status] || st.status;
+    $("problem").innerHTML = (st.status === "off" || st.status === "error")
+      ? `<div class="card" style="border-left:4px solid var(--advisory);margin-bottom:16px">
+          <b>${DS.esc(st.reason || "The board is not computing the bearing stage.")}</b>
+          <div class="small" style="margin-top:6px">Until it does, the bearing stage runs on this computer's stored
+            spectra, with the verdict from the engine shown on Settings. Once the board is answering, restart the
+            stream to hand the bearing back to it.</div>
+          ${st.detail ? `<div class="small muted mono" style="margin-top:6px">${DS.esc(st.detail)}</div>` : ""}
+          <div style="margin-top:10px"><button class="btn secondary" id="restart">Restart the stream</button></div></div>` : "";
+    const r = $("restart");
+    if (r) r.onclick = async () => { r.disabled = true; await DS.json("/api/stream/restart", {method: "POST"}); setTimeout(poll, 1500); };
+  }
+
+  function drawKpis() {
+    const t = st.totals || {}, n = st.now, e = (st.events || [])[0];
+    $("k-now").textContent = n ? n.lift : "—";
+    $("k-now-s").textContent = n ? `bearing, segment ${n.segment} of ${n.segments}` : running(st) ? "" : "idle";
+    $("k-time").innerHTML = e && e.timings ? ms(e.timings.total_ms) : "—";
+    const f = (st.timing || {}).realtime_factor;
+    $("k-time-s").textContent = !f ? "" : f >= 1 ? `keeps up: ${f}× faster than the signal arrives`
+      : `behind real time: ${(1 / f).toFixed(2)} s of board time per 1 s of signal`;
+    const w = t.on_board_windows || 0;
+    $("k-windows").textContent = w ? DS.int(w) : "—";
+    $("k-windows-s").textContent = w ? `${DS.int(t.segments - (t.on_laptop || 0))} × 4 s of signal · ${mb(t.bytes_sent)} sent` +
+      (t.on_laptop ? ` · ${t.on_laptop} segment(s) done on this computer while the board was away` : "") : "";
+    $("k-check").textContent = w ? `${DS.int(t.int8_identical)} / ${DS.int(w)}` : "—";
+    $("k-check-s").textContent = !w ? "" :
+      `network input identical to the laptop's` +
+      (t.bytes_differing ? ` (${DS.int(t.bytes_differing)} of ${DS.int(w * 2560)} bytes differ)` : "") +
+      ` · same verdict ${DS.int(t.verdict_same)} / ${DS.int(w)} · FPGA outputs exact ${DS.int(t.fpga_exact)} / ${DS.int(w)}`;
+  }
+
+  function drawLifts() {
+    const L = st.lifts || [];
+    $("lifts").innerHTML = L.length ? L.map(l => `<div class="card" style="padding:14px 16px">
+        <div class="small muted">${DS.esc(l.label)}</div>
+        <div style="margin:8px 0">${DS.badge(l.status, true)}</div>
+        <div class="small muted">${l.segments ? `segment ${l.segment} of ${l.segments} processed` : "no raw data"}</div></div>`).join("")
+      : `<div class="empty">The board is not computing the bearing stage.</div>`;
+  }
+
+  function drawPipeline(e, fresh) {
+    const t = e && e.timings ? e.timings : {};
+    const steps = [
+      ["net", "Laptop ⇄ board", "Network, both ways", e ? ms(e.network_ms) : "—", e && e.bytes_sent ? `${mb(e.bytes_sent)} raw signal out · results back` : "raw signal out, results back"],
+      ["arm", "Board · ARM", "Anti-alias filter and decimate", ms(t.decimate_ms), "current ÷16, vibration ÷2"],
+      ["arm", "Board · ARM", "Band-pass and envelope", ms(t.envelope_ms), "two vibration bands"],
+      ["arm", "Board · ARM", "Shaft speed and spectra", ms(t.spectra_ms), e && e.rpm ? `${Math.round(e.rpm)} rpm from the current` : "5 channels × 7 windows"],
+      ["arm", "Board · ARM", "Quantise to 8-bit", ms(t.quantise_ms), "the FPGA's input"],
+      ["fpga", "Board · FPGA", "Network, 7 windows", ms(t.fpga_ms), e && e.windows.length && e.windows[0].cycles ? `${DS.int(e.windows[0].cycles)} cycles each` : "one window per 0.5 s"],
+    ];
+    $("pipeline").innerHTML = steps.map(([k, w, what, v, sub]) =>
+      `<div class="pipe-step ${k}${fresh ? " flash" : ""}"><div class="where">${w}</div>
+        <div class="what">${what}</div><div class="ms">${v}</div><div class="sub">${DS.esc(sub)}</div></div>`).join("");
+    $("pipe-when").textContent = e ? `${e.lift} · segment ${e.segment} · ${DS.clock(e.time_unix)}` +
+      (e.where === "laptop" ? ` · computed on this computer (${e.error || "board unavailable"})` : "") : "";
+  }
+
+  function drawRaw(e) {
+    if (!e) { empty($("raw-vib"), "The raw signal appears as it is sent."); empty($("raw-cur"), ""); return; }
+    const rv = st.raw_view, r = e.raw;
+    const xs = (n, span) => Array.from({length: n}, (_, i) => i * span / n);
+    DSChart.line($("raw-vib"), {series: [{name: "vibration", values: r.vibration, x: xs(r.vibration.length, rv.vibration_ms)}],
+      xLabel: "ms", yLabel: "vibration", height: 150, xMin: 0, xMax: rv.vibration_ms});
+    DSChart.line($("raw-cur"), {series: [
+        {name: "phase 1", values: r.current_1, x: xs(r.current_1.length, rv.current_ms), color: PHASES[0]},
+        {name: "phase 2", values: r.current_2, x: xs(r.current_2.length, rv.current_ms), color: PHASES[1]}],
+      xLabel: "ms", yLabel: "current", height: 170, xMin: 0, xMax: rv.current_ms});
+    $("raw-when").textContent = `${e.lift} · segment ${e.segment} · ${DS.clock(e.time_unix)}`;
+  }
+
+  function drawSpectrum(e, k) {
+    if (!e || !st.meta || !e.views || !e.views.length) {
+      empty($("spectrum"), "The board's spectrum appears here."); $("chips").innerHTML = ""; $("spec-caption").textContent = ""; return;
+    }
+    k = Math.min(k, e.views.length - 1);
+    DSSignal.live($("spectrum"), "bearing", st.meta, [{spectrum: e.views[k]}], {height: 240});
+    const w = e.windows[k];
+    $("spec-when").textContent = `${e.lift} · segment ${e.segment}, window ${k + 1} of ${e.windows.length}`;
+    $("spec-caption").innerHTML = DSSignal.caption("bearing", st.meta) +
+      ` Verdict for this window: <b>${DS.esc(NAME[w.label] || w.label)}</b>` +
+      (w.cycles ? `, ${DS.int(w.cycles)} FPGA cycles` : "") + (w.fpga_ms ? `, ${w.fpga_ms} ms` : "") + ".";
+    $("chips").innerHTML = e.windows.map((x, i) =>
+      `<span class="chip${i === k ? " on" : ""}${x.label !== "healthy" ? " fault" : ""}">${i + 1} · ${DS.esc(NAME[x.label] || x.label)}</span>`).join("");
+  }
+
+  // The 7 windows of a segment are shown 0.5 s apart, as the signal they describe unfolded.
+  function animate(e) {
+    if (anim) clearInterval(anim);
+    anim = null; frame = 0;
+    if (!e) return drawSpectrum(null, 0);
+    drawSpectrum(e, 0);
+    anim = setInterval(() => {
+      frame += 1;
+      if (frame >= e.views.length) { clearInterval(anim); anim = null; return; }
+      drawSpectrum(e, frame);
+    }, 500);
+  }
+
+  function drawAlerts() {
+    const A = st.alerts || [];
+    if (A.length === drawnAlerts) return;
+    $("alerts").innerHTML = A.length
+      ? A.map((a, k) => DS.alertCard(a, {fresh: k === 0 && drawnAlerts >= 0, link: true, site: false})).join("")
+      : `<div class="empty">Bearing alerts raised from the board's verdicts appear here.</div>`;
+    $("n-alerts").textContent = A.length ? `${A.length} latest` : "";
+    drawnAlerts = A.length;
+  }
+
+  function drawLog() {
+    const E = st.events || [];
+    $("log").innerHTML = E.length ? E.map(e => `<tr>
+        <td>${DS.esc(e.lift)}</td><td>${e.segment}</td><td>${DS.clock(e.time_unix)}</td>
+        <td class="r">${e.rpm ? Math.round(e.rpm) + " rpm" : "—"}</td><td>${DS.esc(majority(e.windows))}</td>
+        <td class="r">${e.timings ? Math.round(e.timings.total_ms) + " ms" : "this computer"}</td>
+        <td class="r">${e.rtt_ms ? Math.round(e.rtt_ms) + " ms" : "—"}</td>
+        <td class="r">${e.compared ? `${e.identical} / ${e.compared}` : "—"}</td></tr>`).join("")
+      : `<tr><td colspan="8" class="muted">Each 4 s segment is listed here when the board returns it.</td></tr>`;
+  }
+
+  function drawBoard() {
+    const b = st.board;
+    const rows = b ? [["Address", b.address], ["Core build", b.build_id],
+      ["Signal processing", b.frontend ? `ready · FFT from ${b.fft} · ${b.workers || 1} ARM core(s)` : "not installed"],
+      ["Board software", `Python ${b.python} · numpy ${b.numpy} · scipy ${b.scipy || "—"}`]]
+      : [["Address", "set on Settings, under Bearing engine"]];
+    $("board").innerHTML = rows.map(([k, v]) => `<span class="k">${k}</span><span>${DS.esc(v)}</span>`).join("");
+  }
+
+  function render() {
+    const e = (st.events || [])[0] || null;
+    const seg = e ? e.lift + e.segment + "@" + e.time_unix : null, fresh = seg !== lastSeg;
+    drawStatus(); drawKpis(); drawLifts(); drawAlerts(); drawLog(); drawBoard();
+    if (fresh) { drawPipeline(e, !!e); drawRaw(e); animate(e); lastSeg = seg; }
+  }
+
+  async function poll() { st = await DS.json("/api/board/live"); render(); }
+
+  await poll();
+  DS.every(1000, poll);
+})();
+</script>
+</body>
+</html>

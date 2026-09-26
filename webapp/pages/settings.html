@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Settings</h1>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:0">
+    <div class="section-title"><h2>Data source</h2><span class="live" id="live">Streaming</span></div>
+    <div class="stack" id="sources"><div class="card skeleton" style="height:90px"></div></div>
+    <div style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn secondary" id="restart">Restart drive stream</button>
+      <span class="small muted" id="started"></span>
+    </div>
+  </div>
+
+  <div class="card section" id="engine-card"><h3>Bearing engine</h3>
+    <div class="kv" style="margin-top:12px">
+      <span class="k">Active</span><span><b id="engine-active">—</b></span>
+      <span class="k">Board</span><span id="engine-board">—</span>
+      <span class="k">Windows</span><span class="num" id="engine-windows">—</span>
+    </div>
+    <form id="engine-form" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <label class="field" style="flex:1 1 220px;margin:0">Board address
+        <input type="text" id="engine-address" name="address" placeholder="192.168.2.99:8765" autocomplete="off">
+      </label>
+      <button class="btn secondary" type="submit">Save</button>
+    </form>
+  </div>
+
+  <div class="grid two section">
+    <div class="card"><h3>Alert delivery</h3><div id="delivery"></div></div>
+    <div class="card"><h3>Account</h3>
+      <div class="kv" style="margin-top:12px"><span class="k">Signed in as</span><span id="user">—</span>
+        <span class="k">Session</span><span>Signs out automatically after 8 hours</span></div>
+      <form method="post" action="/signout" style="margin:16px 0 0"><button class="btn secondary" type="submit">Sign out</button></form>
+    </div>
+  </div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  const meta = await DS.chrome("/settings");
+  document.getElementById("user").textContent = meta ? meta.user : "—";
+
+  async function render() {
+    const d = await DS.json("/api/settings");
+    document.getElementById("sources").innerHTML = d.sources.map(s => `
+      <div class="source${s.active ? " active" : ""}">
+        <span class="radio" aria-hidden="true"></span>
+        <div class="body">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <span class="name">${DS.esc(s.name)}</span>
+            <span class="state ${s.active || s.live ? "on" : "ready"}">${DS.esc(s.state)}</span></div>
+        </div>
+      </div>`).join("");
+    const live = document.getElementById("live");
+    live.className = "live" + (d.stream.streaming ? "" : " idle");
+    live.textContent = d.stream.streaming ? "Streaming" : "Up to date";
+    document.getElementById("started").textContent = d.stream.started_unix
+      ? `Stream started ${DS.clock(d.stream.started_unix)}` : "";
+    const D = d.delivery;
+    document.getElementById("delivery").innerHTML = `<div class="kv" style="margin-top:12px">
+      <span class="k">Packet size</span><span class="num">${D.packet_bytes} bytes per alert</span>
+      <span class="k">In place of</span><span class="num">${DS.int(D.window_bytes)} bytes of spectra per observation</span>
+      <span class="k">Transport</span><span>HTTP${D.store_and_forward ? ", store-and-forward: held on disk and resent until acknowledged" : ""}</span>
+      ${D.delivered != null ? `<span class="k">Delivered</span><span class="num">${DS.int(D.delivered)}</span>
+      <span class="k">Waiting</span><span class="num">${DS.int(D.pending)}</span>` : ""}
+    </div>`;
+  }
+  const addr = document.getElementById("engine-address");
+  let addrTouched = false;
+  addr.addEventListener("input", () => { addrTouched = true; });
+  function showEngine(e) {
+    document.getElementById("engine-active").textContent = e.active;
+    document.getElementById("engine-board").textContent =
+      e.board === "ready" ? `Ready · build ID ${e.build_id}` :
+      e.board === "not set" ? "No address set" : `${e.board[0].toUpperCase()}${e.board.slice(1)} · using Software`;
+    const w = e.windows || {};
+    document.getElementById("engine-windows").textContent =
+      Object.keys(w).map(k => `${k} ${DS.int(w[k])}`).join(" · ") || "—";
+    if (!addrTouched) addr.value = e.address ? e.address.replace(/^https?:\/\//, "") : "";
+  }
+  async function renderEngine() { showEngine(await DS.json("/api/engine")); }
+  document.getElementById("engine-form").onsubmit = async ev => {
+    ev.preventDefault();
+    showEngine(await DS.json("/api/engine", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({address: addr.value.trim()})}));
+    addrTouched = false;
+  };
+  await renderEngine();
+  DS.every(3000, renderEngine);
+
+  document.getElementById("restart").onclick = async () => {
+    await DS.json("/api/stream/restart", {method: "POST"});
+    render();
+  };
+  await render();
+  DS.every(3000, render);
+})();
+</script>
+</body>
+</html>

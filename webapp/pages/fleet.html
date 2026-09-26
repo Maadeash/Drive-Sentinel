@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fleet · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Fleet overview</h1>
+    </div>
+    <span class="live" id="live">Streaming</span>
+  </div>
+
+  <div class="grid four" id="kpis">
+    <div class="card kpi skeleton" style="height:104px"></div><div class="card kpi skeleton" style="height:104px"></div>
+    <div class="card kpi skeleton" style="height:104px"></div><div class="card kpi skeleton" style="height:104px"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><h2>Lifts</h2><span class="small muted" id="updated"></span></div>
+    <div class="grid two" id="lifts"></div>
+  </div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/fleet");
+
+  function liftCard(l) {
+    const a = l.latest_alert;
+    return `<a class="card link lift-card ${DS.stClass(l.status)}" href="/lifts/${encodeURIComponent(l.slug)}">
+      <div class="head">
+        <div><div class="title">${DS.esc(l.label)}</div>
+          <div class="where">${DS.esc(l.site)} · ${DS.esc(l.drive)}</div></div>
+        ${DS.badge(l.status)}
+      </div>
+      <div class="stage-row">${l.stages.map(s => `<div class="stage-pill ${DS.stClass(s.status)}" title="${DS.esc(s.name)}: ${DS.esc(s.status)}">
+          <span class="dot-st"></span><span>${DS.esc(s.name)}</span></div>`).join("")}</div>
+      <div class="latest">${a
+        ? `<span>Latest: <b>${DS.esc(a.headline)}</b> · ${DS.esc(a.stage_name)}</span><span>${DS.ago(a.time_unix)}</span>`
+        : `<span>No alerts</span><span>${l.last_unix ? "Data " + DS.ago(l.last_unix) : ""}</span>`}</div>
+    </a>`;
+  }
+
+  async function refresh() {
+    const d = await DS.json("/api/fleet");
+    const S = d.summary;
+    document.getElementById("kpis").innerHTML = `
+      <div class="card kpi accent"><div class="k">Lifts monitored</div><div class="v">${S.lifts}</div>
+        <div class="s">${S.stages_monitored} drive stages streaming</div></div>
+      <div class="card kpi accent st-ALARM"><div class="k">Alarms</div><div class="v">${S.alarm}</div>
+        <div class="s">Schedule inspection</div></div>
+      <div class="card kpi accent st-ADVISORY"><div class="k">Advisories</div><div class="v">${S.advisory}</div>
+        <div class="s">Check at next visit</div></div>
+      <div class="card kpi accent st-NORMAL"><div class="k">Normal</div><div class="v">${S.normal}</div>
+        <div class="s">Stages reporting normal</div></div>`;
+    document.getElementById("lifts").innerHTML = d.lifts.map(liftCard).join("");
+    const live = document.getElementById("live");
+    live.className = "live" + (d.streaming ? "" : " idle");
+    live.textContent = d.streaming ? "Streaming" : "Up to date";
+    document.getElementById("updated").textContent = "Updated " + DS.clock(Date.now() / 1000);
+  }
+  await refresh();
+  DS.every(2000, refresh);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="signin">
+<div class="auth">
+  <section class="auth-brand">
+    <div class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="8" fill="#2a4a94"/>
+      <path d="M5 17h5l2.5-6 4 12 3-9 2 3H27" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="name">DriveSentinel</span></div>
+  </section>
+
+  <section class="auth-form">
+    <form class="auth-card" method="post" action="/signin" autocomplete="on">
+      <h2>Sign in</h2>
+      <div class="form-error" id="error" role="alert">Incorrect username or password.</div>
+      <div class="form-info" id="info" role="status">You have signed out.</div>
+      <input type="hidden" name="next" id="next" value="/fleet">
+      <label class="field">Username
+        <input type="text" name="username" id="username" autocomplete="username" required autofocus>
+      </label>
+      <label class="field">Password
+        <input type="password" name="password" id="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn" type="submit">Sign in</button>
+      <p class="fine">Prepared for KONE Elevate'26 · Problem Statement 06</p>
+    </form>
+  </section>
+</div>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  if (q.get("next")) document.getElementById("next").value = q.get("next");
+  if (q.get("error")) document.getElementById("error").classList.add("show");
+  if (q.get("signed_out")) document.getElementById("info").classList.add("show");
+})();
+</script>
+</body>
+</html>

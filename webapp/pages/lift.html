@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lift health · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="crumbs"><a href="/fleet">Fleet</a> / <span id="crumb">Lift</span></div>
+  <div class="page-head">
+    <div>
+      <h1 id="title">Lift health</h1>
+      <p class="lead" id="where"></p>
+    </div>
+    <div class="monitor-bar"><span id="status"></span>
+      <a class="btn secondary" id="monitor" href="/monitor">Open in Live monitor</a></div>
+  </div>
+
+  <div class="grid four" id="stages">
+    <div class="card skeleton" style="height:190px"></div><div class="card skeleton" style="height:190px"></div>
+    <div class="card skeleton" style="height:190px"></div><div class="card skeleton" style="height:190px"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><h2>Events</h2><span class="live" id="live">Streaming</span></div>
+    <div id="events"></div>
+  </div>
+</main>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/signals.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/fleet");
+  const slug = decodeURIComponent(location.pathname.split("/").pop());
+  let firstStage = null, seen = null;
+
+  async function refresh() {
+    const d = await DS.json("/api/lifts/" + encodeURIComponent(slug));
+    document.title = `${d.label} · DriveSentinel`;
+    document.getElementById("title").textContent = d.label;
+    document.getElementById("crumb").textContent = d.label;
+    document.getElementById("where").textContent = `${d.site} · ${d.drive}`;
+    document.getElementById("status").innerHTML = DS.badge(d.status);
+    firstStage = firstStage || (d.stages.find(s => s.status === "ALARM") || d.stages.find(s => s.monitored) || {}).slug;
+    document.getElementById("monitor").href = `/monitor?lift=${encodeURIComponent(slug)}` +
+      (firstStage ? `&stage=${encodeURIComponent(firstStage)}` : "");
+
+    const box = document.getElementById("stages");
+    box.innerHTML = d.stages.map(s => `
+      <div class="card stage-card ${DS.stClass(s.status)}">
+        <div class="top"><span class="title">${DS.esc(s.name)}</span>${DS.badge(s.status)}</div>
+        <div class="sub"><span>${DS.rating(s.rating)}</span>
+          <span>${s.monitored ? "Data " + DS.ago(s.last_unix) : ""}</span></div>
+        <div class="spark" id="spark-${s.slug}">${s.monitored ? "" : "No data"}</div>
+        ${s.monitored ? `<a class="small" style="margin-top:10px" href="/monitor?lift=${encodeURIComponent(slug)}&stage=${s.slug}">Live monitor ${DS.ICON.arrow}</a>` : ""}
+      </div>`).join("");
+    d.stages.forEach(s => {
+      if (s.monitored) DSSignal.live(document.getElementById("spark-" + s.slug), s.slug, s.signal, s.recent,
+                                     {sparkline: true, height: 70});
+    });
+
+    const ids = d.events.map(e => e.id).join(",");
+    if (ids !== seen) {
+      const old = new Set((seen || "").split(","));
+      document.getElementById("events").innerHTML = d.events.length
+        ? d.events.map(e => DS.alertCard(e, {fresh: seen !== null && !old.has(e.id), site: false})).join("")
+        : DS.emptyState("No events for this lift yet.");
+      seen = ids;
+    }
+    const live = document.getElementById("live");
+    live.className = "live" + (d.streaming ? "" : " idle");
+    live.textContent = d.streaming ? "Streaming" : "Up to date";
+  }
+  await refresh();
+  DS.every(1500, refresh);
+})();
+</script>
+</body>
+</html>

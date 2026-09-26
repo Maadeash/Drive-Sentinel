@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Why? · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="crumbs"><a href="/alerts">Alerts</a> / <span id="crumb">Why?</span></div>
+  <div id="root"><div class="card skeleton" style="height:220px"></div></div>
+</main>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/signals.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/alerts");
+  const ref = decodeURIComponent(location.pathname.split("/").pop());
+  const root = document.getElementById("root");
+  let d;
+  try { d = await DS.json("/api/alerts/" + encodeURIComponent(ref)); }
+  catch (e) {
+    root.innerHTML = DS.emptyState("This alert is no longer in the feed.") +
+      `<p class="small" style="text-align:center;margin-top:12px"><a href="/alerts">Back to all alerts</a></p>`;
+    return;
+  }
+  const a = d.alert, t = d.technical, sig = d.signal, kind = sig.kind;
+  document.title = `${a.headline} · ${a.lift} · DriveSentinel`;
+  document.getElementById("crumb").textContent = `${a.lift} · ${a.stage_name}`;
+  const isAlarm = a.status === "ALARM";
+
+  root.innerHTML = `
+    ${DS.alertCard(a, {link: false})}
+
+    <div class="section"><div class="section-title"><h2>Why</h2>
+      <a class="small" href="/lifts/${encodeURIComponent(a.lift_slug)}">${DS.esc(a.lift)} health ${DS.ICON.arrow}</a></div>
+      <div class="card"><h3>${kind === "bearing" ? "Frequency picture" : "Signal"}</h3>
+        <div id="sig" style="margin-top:12px"></div>
+        <p class="small muted">${DSSignal.caption(kind, sig)}</p>
+      </div>
+
+      <div class="grid three section">
+        <div class="card kpi accent ${DS.stClass(a.status)}"><div class="k">Confidence</div><div class="v">${DS.pct(a.confidence)}</div>
+          <div class="s">Share of the pooled evidence pointing to this finding</div></div>
+        <div class="card kpi accent"><div class="k">Observations pooled</div><div class="v">${a.n_obs}</div>
+          <div class="s">Rolling window of ${d.fusion.rolling_window} observations</div></div>
+        <div class="card kpi accent"><div class="k">Stage rating</div><div style="margin-top:10px">${DS.rating(t.rating)}</div>
+          <div class="s" style="margin-top:8px">${isAlarm ? "Alarm: schedule an inspection now."
+            : "Advisory: an early sign to check at the next visit."}</div></div>
+      </div>
+
+      <div class="card section"><h3>Evidence</h3>
+        <div id="trace" style="margin-top:12px"></div>
+        <p class="small muted">Fault share of recent observations · status changes after ${d.fusion.k_consecutive} consecutive observations · vertical line: this alert</p>
+      </div>
+
+    </div>
+
+    <div class="section">
+      <details><summary>Technical details</summary><div>
+        <div class="kv">
+          <span class="k">Stage rating</span><span>${DS.rating(t.rating)}</span>
+          <span class="k">Validation method</span><span>${DS.esc(t.method)}</span>
+          <span class="k">Validation score</span><span class="num">${DS.esc(t.score_name)} ${DS.fmt(t.score)}</span>
+          <span class="k">Independent validation groups</span><span class="num">${t.validation_groups ?? "—"}</span>
+          <span class="k">Alarm-ready criterion</span><span>At least ${t.alarm_ready_groups} independent validation groups and a validation score of at least ${t.alarm_ready_score}</span>
+          <span class="k">Alert packet</span><span class="mono">${t.packet_bytes} bytes · ${DS.esc(t.packet_hex)}</span>
+        </div>
+      </div></details>
+    </div>`;
+
+  DSSignal.whole(document.getElementById("sig"), kind, sig, d.trigger);
+  DSChart.line(document.getElementById("trace"), {
+    series: [{name: "fault evidence", values: d.trace.map(s => s.p_fault), x: d.trace.map(s => s.t), area: true}],
+    yMin: 0, yMax: 1, cursor: d.trigger.t, xLabel: "s", yLabel: "evidence", height: 170});
+})();
+</script>
+</body>
+</html>

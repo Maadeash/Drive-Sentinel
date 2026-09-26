@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head"><div><h1>About</h1></div></div>
+
+  <div class="card"><h3>Overview</h3><div id="overview"></div></div>
+
+  <div class="section">
+    <div class="section-title"><h2>Stages</h2></div>
+    <div class="grid four" id="stages"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><h2>Alert levels</h2></div>
+    <div class="grid three" id="levels"></div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card"><h3>Decision rule</h3><div id="rule"></div></div>
+    <div class="card"><h3>Edge hardware</h3><div id="edge"></div></div>
+  </div>
+
+  <div class="card section"><h3>Roadmap</h3><p id="roadmap" style="margin:10px 0 0"></p></div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/about");
+  const d = await DS.json("/api/about");
+  const kv = pairs => `<div class="kv" style="margin-top:12px">${pairs.map(([k, v]) =>
+    `<span class="k">${k}</span><span>${v}</span>`).join("")}</div>`;
+  document.getElementById("overview").innerHTML = d.overview.map(p => `<p style="margin:10px 0 0">${DS.esc(p)}</p>`).join("");
+  document.getElementById("stages").innerHTML = d.stages.map(s => `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h3>${DS.esc(s.name)}</h3>${DS.rating(s.rating)}</div>
+      <p class="small muted" style="margin:8px 0 0">${DS.esc(s.description)}</p></div>`).join("");
+  document.getElementById("levels").innerHTML = d.alert_levels.map(l => `<div class="card kpi accent ${DS.stClass(l.status)}">
+      <div class="level">${DS.badge(l.status, true)}</div>
+      <p style="margin:12px 0 4px;font-weight:600">${DS.esc(l.meaning)}</p>
+      <div class="small muted">Raised by: ${DS.esc(l.raised_by)}</div></div>`).join("");
+  document.getElementById("rule").innerHTML = kv([
+    ["Rolling window", `${d.evidence.rolling_window} observations`],
+    ["Status change", `after ${d.evidence.k_consecutive} consecutive observations`]]);
+  const e = d.edge;
+  document.getElementById("edge").innerHTML = kv([
+    ["Target", `${DS.esc(e.part_family)} FPGA`],
+    ["Verification", "bit-exact in simulation"],
+    ["Weights", `${DS.int(e.weights)} × 8-bit`],
+    ["Cycles per verdict", `${DS.int(e.cycles)} (${DS.fmt(e.latency_ms_100mhz, 1)} ms at 100 MHz)`],
+    ["Alert packet", `${e.packet_bytes} bytes, in place of ${DS.int(e.window_bytes)} bytes of spectra`],
+    ["Delivery", "HTTP, store-and-forward"]]) +
+    `<p class="small" style="margin:12px 0 0"><a href="/hardware">Hardware ${DS.ICON.arrow}</a></p>`;
+  document.getElementById("roadmap").textContent = d.roadmap;
+})();
+</script>
+</body>
+</html>

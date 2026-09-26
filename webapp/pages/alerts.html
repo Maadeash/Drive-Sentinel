@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alerts · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Alerts</h1>
+    </div>
+    <span class="live" id="live">Streaming</span>
+  </div>
+
+  <div class="toolbar">
+    <label class="field">Status
+      <select id="f-status">
+        <option value="">All statuses</option>
+        <option>ALARM</option><option>ADVISORY</option><option>NORMAL</option>
+      </select>
+    </label>
+    <label class="field">Stage
+      <select id="f-stage"><option value="">All stages</option></select>
+    </label>
+    <label class="field">Lift
+      <select id="f-lift"><option value="">All lifts</option></select>
+    </label>
+    <span class="spacer"></span>
+    <span class="small muted" id="count"></span>
+  </div>
+
+  <div id="feed"><div class="card skeleton" style="height:180px"></div></div>
+</main>
+<script src="/static/js/common.js"></script>
+<script>
+(async () => {
+  const meta = await DS.chrome("/alerts");
+  const sel = {status: document.getElementById("f-status"), stage: document.getElementById("f-stage"),
+               lift: document.getElementById("f-lift")};
+  (meta ? meta.stages : []).forEach(s => sel.stage.add(new Option(s.name, s.slug)));
+  (await DS.json("/api/monitor")).forEach(l => sel.lift.add(new Option(l.label, l.slug)));
+
+  function fromUrl() {
+    const q = new URLSearchParams(location.search);
+    for (const k of Object.keys(sel)) sel[k].value = q.get(k) || "";
+  }
+  function query() {
+    const p = new URLSearchParams();
+    for (const [k, el] of Object.entries(sel)) if (el.value) p.set(k, el.value);
+    return p;
+  }
+  fromUrl();
+
+  let seen = null;
+  async function refresh() {
+    const p = query();
+    const [rows, m] = await Promise.all([DS.json("/api/alerts?" + p), DS.json("/api/meta")]);
+    const ids = rows.map(r => r.id).join(",");
+    if (ids !== seen) {
+      const old = new Set((seen || "").split(","));
+      document.getElementById("feed").innerHTML = rows.length
+        ? rows.map(a => DS.alertCard(a, {fresh: seen !== null && !old.has(a.id)})).join("")
+        : DS.emptyState(p.toString() ? "No alerts match these filters." : "No alerts yet.");
+      seen = ids;
+    }
+    document.getElementById("count").textContent = `${rows.length} alert${rows.length === 1 ? "" : "s"}`;
+    const live = document.getElementById("live");
+    live.className = "live" + (m.streaming ? "" : " idle");
+    live.textContent = m.streaming ? "Streaming" : "Up to date";
+  }
+
+  // Filters live in the URL: bookmarkable, and back/forward restores them.
+  Object.values(sel).forEach(el => el.onchange = () => {
+    const p = query();
+    history.pushState(null, "", "/alerts" + (p.toString() ? "?" + p : ""));
+    seen = null; refresh();
+  });
+  addEventListener("popstate", () => { fromUrl(); seen = null; refresh(); });
+  await refresh();
+  DS.every(2500, refresh);
+})();
+</script>
+</body>
+</html>

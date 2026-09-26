@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live monitor · DriveSentinel</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Live monitor</h1>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="field">Lift <select id="lift"></select></label>
+    <label class="field">Drive stage <select id="stage"></select></label>
+    <span class="spacer"></span>
+    <span class="live idle" id="live">Connecting…</span>
+  </div>
+
+  <div class="card">
+    <div class="monitor-bar">
+      <div style="flex:1;min-width:220px"><h2 id="title">—</h2>
+        <div class="small muted" id="subtitle"></div></div>
+      <div class="status-big"><span id="status"></span><span class="clock" id="clock"></span></div>
+    </div>
+    <div id="signal" style="margin-top:16px"></div>
+    <p class="small muted" id="caption"></p>
+  </div>
+
+  <div class="grid two section">
+    <div class="card"><h3>Fault evidence</h3><div id="evidence" style="margin-top:10px"></div></div>
+    <div class="card"><div class="section-title" style="margin-bottom:10px"><h3>Alerts</h3>
+      <span class="small muted" id="n-alerts"></span></div>
+      <div class="feed-scroll" id="alerts"></div></div>
+  </div>
+</main>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/signals.js"></script>
+<script>
+(async () => {
+  await DS.chrome("/monitor");
+  const options = await DS.json("/api/monitor");
+  const liftSel = document.getElementById("lift"), stageSel = document.getElementById("stage");
+  options.forEach(l => liftSel.add(new Option(l.label, l.slug)));
+
+  // The page shows what the server's stream has computed -- the same stream that
+  // raises the alerts on the Alerts page -- and asks for anything new every second.
+  let tl = null, steps = [], drawnAlerts = -1, gen = 0;
+
+  function fillStages(want) {
+    const l = options.find(o => o.slug === liftSel.value) || options[0];
+    stageSel.innerHTML = "";
+    l.stages.forEach(s => stageSel.add(new Option(s.name, s.slug)));
+    if (want && l.stages.some(s => s.slug === want)) stageSel.value = want;
+  }
+
+  function placeholder(el, text) {
+    el.classList.remove("chart");
+    el.innerHTML = `<div class="empty" style="padding:48px 12px">${DS.esc(text)}</div>`;
+  }
+
+  const url = since => `/api/monitor/${encodeURIComponent(liftSel.value)}/${encodeURIComponent(stageSel.value)}?since=${since}`;
+
+  async function load(push) {
+    const my = ++gen;
+    const d = await DS.json(url(0));
+    if (my !== gen) return;
+    tl = d; steps = d.steps; drawnAlerts = -1;
+    document.title = `${tl.lift} · ${tl.stage_name} · Live monitor · DriveSentinel`;
+    document.getElementById("title").textContent = `${tl.lift} · ${tl.stage_name}`;
+    document.getElementById("subtitle").innerHTML =
+      `${DS.esc(tl.site)} · ${DS.esc(tl.drive)} · ${DS.rating(tl.rating)}`;
+    const q = `/monitor?lift=${encodeURIComponent(liftSel.value)}&stage=${encodeURIComponent(stageSel.value)}`;
+    if (push) history.pushState(null, "", q); else history.replaceState(null, "", q);
+    draw();
+  }
+
+  async function poll() {
+    if (!tl) return;
+    const my = gen;
+    const d = await DS.json(url(steps.length));
+    if (my !== gen) return;
+    Object.assign(tl, {streaming: d.streaming, last_unix: d.last_unix, n_steps: d.n_steps});
+    if (d.steps.length) { steps = steps.concat(d.steps); draw(); } else drawStatus();
+  }
+
+  function engineText(e) {
+    if (!e) return "";
+    const where = e.dsp === "board" ? "signal processed on the board" : "signal processed on this computer";
+    return ` Verdict from ${DS.esc(e.engine)}` + (e.cycles ? ` (${DS.int(e.cycles)} cycles)` : "") + `, ${where}.`;
+  }
+
+  function drawStatus() {
+    const live = document.getElementById("live");
+    live.className = "live" + (tl && tl.streaming ? "" : " idle");
+    live.textContent = !tl ? "Connecting…" : tl.streaming
+      ? `Streaming · ${DS.int(steps.length)} observations · latest ${DS.clock(tl.last_unix)}`
+      : `Stream complete · ${DS.int(steps.length)} observations`;
+  }
+
+  function draw() {
+    const cur = steps[steps.length - 1];
+    document.getElementById("status").innerHTML = cur ? DS.badge(cur.status, true) : "";
+    document.getElementById("clock").textContent = cur ? DS.clock(tl.last_unix) : "";
+    document.getElementById("caption").innerHTML = DSSignal.caption(tl.stage, tl.signal) +
+      (cur ? engineText(cur.engine) : "");
+    if (!steps.length) {
+      placeholder(document.getElementById("signal"), "Waiting for this stage's first observation.");
+      placeholder(document.getElementById("evidence"), "Evidence appears as observations arrive.");
+    } else {
+      const frames = tl.stage === "bearing" ? steps.slice(-1) : steps.slice(-240);
+      DSSignal.live(document.getElementById("signal"), tl.stage, tl.signal, frames, {height: 240});
+      const tNow = cur.t, x0 = Math.max(0, tNow - 120);
+      const shown = steps.filter(s => s.t >= x0);
+      DSChart.line(document.getElementById("evidence"), {
+        series: [{name: "fault evidence", values: shown.map(s => s.p_fault), x: shown.map(s => s.t), area: true}],
+        yMin: 0, yMax: 1, xLabel: "s", yLabel: "evidence", height: 180,
+        xMin: x0, xMax: Math.max(tNow, 20)});
+    }
+    const fired = steps.filter(s => s.alert).map(s => s.alert).reverse();
+    if (fired.length !== drawnAlerts) {
+      document.getElementById("alerts").innerHTML = fired.length
+        ? fired.map((a, k) => DS.alertCard(a, {fresh: k === 0 && drawnAlerts >= 0, link: true, site: false})).join("")
+        : `<div class="empty">No alerts from this stage so far.</div>`;
+      document.getElementById("n-alerts").textContent = fired.length ? `${fired.length} raised` : "";
+      drawnAlerts = fired.length;
+    }
+    drawStatus();
+  }
+
+  liftSel.onchange = async () => { fillStages(); await load(true); };
+  stageSel.onchange = () => load(true);
+  addEventListener("popstate", async () => {
+    const q = new URLSearchParams(location.search);
+    if (q.get("lift")) liftSel.value = q.get("lift");
+    fillStages(q.get("stage"));
+    await load(false);
+  });
+
+  const q = new URLSearchParams(location.search);
+  liftSel.value = options.some(o => o.slug === q.get("lift")) ? q.get("lift") : options[0].slug;
+  fillStages(q.get("stage"));
+  await load(false);
+  DS.every(1000, poll);
+})();
+</script>
+</body>
+</html>
